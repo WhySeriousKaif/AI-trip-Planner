@@ -48,13 +48,7 @@ export const SelectTravelsList = [
       icon: '🏕️',
       people: '4 to 8 People',
     },
-    {
-      id: 8,
-      title: 'Romantic Escape',
-      desc: 'An intimate getaway for two',
-      icon: '💑',
-      people: '2 People',
-    },
+    
   ];
 
   export const AI_Prompt = 'Generate a detailed travel plan for the following:\nLocation: {location}\nDuration: {totalDays} days\nTraveler: {traveler}\nBudget: {budget}\nInclude a list of recommended hotels with options and estimated costs.';

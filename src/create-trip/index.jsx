@@ -18,6 +18,9 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
+import { db } from "./fireBaseConfig";
+import { useNavigate } from "react-router-dom";
 
 const CreateTrip = () => {
   const [place, setPlace] = useState({});
@@ -25,7 +28,8 @@ const CreateTrip = () => {
   const [opendialog, setopendialog] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [tripPlan, setTripPlan] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [savedTripId, setSavedTripId] = useState(null);
+  const navigate = useNavigate();
 
   const handleDialogClose = () => {
     setopendialog(false);
@@ -61,17 +65,8 @@ const CreateTrip = () => {
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (codeResponse) => {
       try {
-        // Add expiration time to the response
-        const expiryDate = new Date();
-        expiryDate.setSeconds(expiryDate.getSeconds() + codeResponse.expires_in);
-        
-        const userDataWithExpiry = {
-          ...codeResponse,
-          expiry_date: expiryDate.toISOString()
-        };
-
-        console.log("Login Success: currentUser:", userDataWithExpiry);
-        localStorage.setItem("user", JSON.stringify(userDataWithExpiry));
+        console.log("Login Success: currentUser:", codeResponse);
+        localStorage.setItem("user", JSON.stringify(codeResponse));
         await getUserProfile(codeResponse);
         setopendialog(false);
         toast.success("Successfully logged in!");
@@ -87,25 +82,15 @@ const CreateTrip = () => {
   });
 
   const checkTokenExpiration = () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (!user) return false;
+    const userSection= JSON.parse(localStorage.getItem("user"));
+    if (!user) return false;
 
-      const expirationTime = new Date(user.expiry_date).getTime();
-      const currentTime = new Date().getTime();
+    // Check if token is expired (expires_in is in seconds)
+    const expirationTime = user.expires_in * 1000; // Convert to milliseconds
+    const currentTime = new Date().getTime();
+    const tokenTimestamp = new Date(user.expiry_date).getTime();
 
-      return currentTime < expirationTime;
-    } catch (error) {
-      console.error("Error checking token expiration:", error);
-      return false;
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("userProfile");
-    setIsAuthenticated(false);
-    toast.info("Session expired. Please login again.");
+    return currentTime < tokenTimestamp;
   };
 
   const validateForm = () => {
@@ -128,8 +113,49 @@ const CreateTrip = () => {
     return true;
   };
 
+  const SaveAiTrip = async (tripPlanText) => {
+    try {
+      const userProfile = JSON.parse(localStorage.getItem("userProfile"));
+      if (!userProfile) {
+        toast.error("User profile not found");
+        return null;
+      }
+
+      // Generate a unique ID for the trip
+      const timestamp = new Date().getTime();
+      const randomString = Math.random().toString(36).substring(2, 8);
+      const tripId = `TRIP-${timestamp}-${randomString}`;
+
+      const tripData = {
+        id: tripId,
+        plan: tripPlanText,
+        destination: FormData.location?.label,
+        days: FormData.noOFdays,
+        budget: FormData.budget,
+        travelers: FormData.people,
+        userId: userProfile.id,
+        userEmail: userProfile.email,
+        userName: userProfile.name,
+        createdAt: serverTimestamp(),
+        status: 'active',
+        lastModified: serverTimestamp()
+      };
+
+      // Use the generated tripId as the document ID
+      const tripRef = doc(db, "trips", tripId);
+      await setDoc(tripRef, tripData);
+
+      console.log("Trip saved with ID:", tripId);
+      return tripId;
+    } catch (error) {
+      console.error("Error saving trip:", error);
+      return null;
+    }
+  };
+
   const generateTrip = async () => {
-    if (!isAuthenticated) {
+    const user = localStorage.getItem("user");
+    if (!user) {
       setopendialog(true);
       toast.error("Please login to continue");
       return;
@@ -141,7 +167,6 @@ const CreateTrip = () => {
     try {
       setIsGenerating(true);
       toggleScroll(true);
-      document.body.style.overflow = 'hidden';
       
       const toastId = toast.loading("Generating your personalized trip plan...");
 
@@ -151,29 +176,39 @@ const CreateTrip = () => {
         .replace("{budget}", FormData?.budget);
 
       const result = await chatSession.sendMessage(finalPrompt);
-      const response = await result?.response?.text();
+      const aiResponse = await result?.response?.text();
+      
+      // Save the trip first
+      const savedId = await SaveAiTrip(aiResponse);
       
       toast.dismiss(toastId);
-      setTripPlan(response);
-      
-      // Smooth scroll to top with offset for header
-      window.scrollTo({ 
-        top: 0,
-        behavior: 'smooth'
-      });
-      
-      toast.success("Your trip plan is ready!");
+
+      if (savedId) {
+        // Store trip data in localStorage
+        const tripData = {
+          plan: aiResponse,
+          destination: FormData.location?.label,
+          days: FormData.noOFdays,
+          budget: FormData.budget,
+          travelers: FormData.people,
+          id: savedId,
+          createdAt: new Date().toISOString()
+        };
+        
+        localStorage.setItem('currentTripData', JSON.stringify(tripData));
+        
+        // Use React Router's navigate instead of window.location
+        navigate(`/view-trip/${savedId}`);
+        toast.success("Your trip plan is ready!");
+      } else {
+        toast.error("Failed to save trip");
+      }
 
     } catch (error) {
-      if (error.message?.includes("429") || error.message?.includes("quota")) {
-        toast.error("We're experiencing high demand. Please try again in a few minutes.");
-      } else {
-        toast.error("Unable to generate trip plan. Please try again.");
-      }
       console.error("Error generating trip:", error);
+      toast.error("Unable to generate trip plan. Please try again.");
     } finally {
       setIsGenerating(false);
-      document.body.style.overflow = 'auto';
       toggleScroll(false);
     }
   };
@@ -194,38 +229,18 @@ const CreateTrip = () => {
   };
 
   useEffect(() => {
-    const checkAuth = () => {
-      const isValid = checkTokenExpiration();
-      setIsAuthenticated(isValid);
-      if (!isValid && localStorage.getItem("user")) {
-        handleLogout();
-      }
-    };
-
-    // Check immediately on mount
-    checkAuth();
-
-    // Set up interval to check periodically
-    const interval = setInterval(checkAuth, 60000); // Check every minute
-
-    // Check on window focus
-    const handleFocus = () => {
-      checkAuth();
-    };
-    window.addEventListener('focus', handleFocus);
-
     return () => {
-      clearInterval(interval);
-      window.removeEventListener('focus', handleFocus);
+      // Cleanup on unmount
+      toggleScroll(false);
     };
   }, []);
 
   return (
-    <div className="sm:px-10 md:px-32 lg:px-56 xl:px-10 px-5 mt-10">
+    <div className="sm:px-10  md:px-32  lg:px-56 xl:px-10 px-5 mt-10">
       <h2 className="font-bold text-3xl">
         Tell us your travel preferences 🏕️🌴
       </h2>
-      <p className="mt-3 text-gray-500">
+      <p className="mt-3 text-gray-500 text-xl">
         Just provide some basic information, and our trip planner will generate
         a customized itinerary based on your preferences.
       </p>
@@ -245,39 +260,13 @@ const CreateTrip = () => {
                 handleInputChange("location", v);
               },
               placeholder: "Search for a destination...",
-              isLoading: !import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-              loadingMessage: () => "Loading...",
-              noOptionsMessage: () => "No locations found",
-              styles: {
-                control: (provided) => ({
-                  ...provided,
-                  padding: '8px',
-                  borderRadius: '6px',
-                  border: '1px solid #e2e8f0',
-                  boxShadow: 'none',
-                  '&:hover': {
-                    borderColor: '#cbd5e1'
-                  }
-                }),
-                input: (provided) => ({
-                  ...provided,
-                  fontSize: '16px'
-                }),
-                option: (provided, state) => ({
-                  ...provided,
-                  backgroundColor: state.isFocused ? '#f1f5f9' : 'white',
-                  color: '#1e293b',
-                  cursor: 'pointer',
-                  padding: '8px 16px'
-                })
+              
               }
-            }}
+            }
           />
         </div>
         <div>
-          <h2 className="text-xl my-2 font-medium">
-            How many days are you planing your trip?
-          </h2>
+          <h2 className="text-xl my-2 font-medium"> How many days are you planing your trip?</h2>
           <Input
             placeholder={"Ex-3"}
             type="number"
@@ -291,14 +280,15 @@ const CreateTrip = () => {
         <h2 className="text-xl my-2 font-medium">What is Your Budget?</h2>
 
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {SelectBudgetOptions.map((item) => (
+          {SelectBudgetOptions.map((item,index) => (
             <div
-              key={item.id}
+              key={index}
               onClick={() => handleInputChange("budget", item.title)}
               className={`p-5 border rounded-lg flex gap-5 items-center hover:shadow-md transition-all duration-200 cursor-pointer
                 ${FormData?.budget === item.title ? "border-blue-500 bg-blue-50" : ""}`}
             >
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex justify-center items-center text-xl">
+              {/* icon */}
+              <div className="w-10 h-10 flex justify-center items-center text-4xl">
                 {item.icon}
               </div>
               <div>
@@ -316,16 +306,16 @@ const CreateTrip = () => {
         <h2 className="text-xl my-2 font-medium">
           What do you plan on traveling with on your next adventure ?
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1  sm:grid-cols-2  md:grid-cols-3  lg:grid-cols-4 gap-5">
           {SelectTravelsList.map((item, index) => (
             <div
               key={index}
               className={`p-5 border rounded-lg flex gap-5 items-center hover:shadow-md transition-all duration-200 cursor-pointer
-                ${FormData?.people === item.people ? "border-blue-500" : ""}`}
+                ${FormData?.people === item.people ? "border-blue-500 bg-blue-50" : ""}`}
               onClick={() => handleInputChange("people", item.people)}
             >
               {/* icon */}
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex justify-center items-center">
+              <div className="w-10 h-10 text-4xl flex justify-center items-center">
                 {item.icon}
               </div>
               <div>
@@ -355,12 +345,10 @@ const CreateTrip = () => {
               <div className="flex flex-col items-center text-center">
                 <img src="/logo.svg" alt="Logo" className="w-20 h-20 mb-4" />
                 <h2 className="font-bold text-2xl my-2">
-                  {isAuthenticated ? "Session Expired" : "Sign in with Google to continue"}
+                  Sign in with Google to continue
                 </h2>
                 <p className="text-gray-500 mb-6">
-                  {isAuthenticated 
-                    ? "Your session has expired. Please sign in again."
-                    : "Sign in to the app with Google authentication secure"}
+                  Sign in to the app with Google authentication secure
                 </p>
 
                 <Button 
@@ -375,67 +363,6 @@ const CreateTrip = () => {
           </DialogHeader>
         </DialogContent>
       </Dialog>
-
-      {tripPlan && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-50 overflow-y-auto"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setTripPlan(null);
-              toggleScroll(false);
-            }
-          }}
-        >
-          <div className="min-h-screen px-4 py-8 flex items-center justify-center">
-            <div className="bg-white rounded-lg max-w-4xl w-full p-6 relative">
-              <Button 
-                variant="ghost" 
-                className="absolute right-4 top-4"
-                onClick={() => {
-                  setTripPlan(null);
-                  toggleScroll(false);
-                }}
-              >
-                ✕
-              </Button>
-              <h3 className="text-2xl font-bold mb-4">Your Trip Plan</h3>
-              <div className="prose max-w-none max-h-[70vh] overflow-y-auto">
-                <div className="whitespace-pre-wrap bg-gray-50 p-6 rounded-lg border">
-                  {tripPlan}
-                </div>
-              </div>
-              <div className="mt-6 flex justify-end gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setTripPlan(null);
-                    toggleScroll(false);
-                  }}
-                >
-                  Close
-                </Button>
-                <Button
-                  onClick={() => {
-                    const tripData = {
-                      plan: tripPlan,
-                      destination: FormData.location?.label,
-                      days: FormData.noOFdays,
-                      budget: FormData.budget,
-                      travelers: FormData.people,
-                      date: new Date().toISOString()
-                    };
-                    console.log("Saving trip:", tripData);
-                    // Implement save functionality here
-                    toast.success("Trip plan saved!");
-                  }}
-                >
-                  Save Plan
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
