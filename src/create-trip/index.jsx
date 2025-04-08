@@ -29,6 +29,7 @@ const CreateTrip = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [tripPlan, setTripPlan] = useState(null);
   const [savedTripId, setSavedTripId] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleDialogClose = () => {
@@ -55,6 +56,8 @@ const CreateTrip = () => {
       );
       console.log("User Profile:", response.data);
       localStorage.setItem("userProfile", JSON.stringify(response.data));
+      setopendialog(false);
+      generateTrip();  
       return response.data;
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -96,7 +99,7 @@ const CreateTrip = () => {
   const validateForm = () => {
     const errors = [];
     if (!FormData.location?.label) errors.push("destination");
-    if (!FormData.noOFdays) errors.push("number of days");
+    if (!FormData.noOfDays) errors.push("number of days");
     if (!FormData.budget) errors.push("budget");
     if (!FormData.people) errors.push("travel group");
     
@@ -105,7 +108,7 @@ const CreateTrip = () => {
       return false;
     }
     
-    if (parseInt(FormData.noOFdays) > 5) {
+    if (parseInt(FormData.noOfDays) > 5) {
       toast.error("You can only plan a trip for up to 5 days");
       return false;
     }
@@ -113,105 +116,100 @@ const CreateTrip = () => {
     return true;
   };
 
-  const SaveAiTrip = async (tripPlanText) => {
-    try {
-      const userProfile = JSON.parse(localStorage.getItem("userProfile"));
-      if (!userProfile) {
-        toast.error("User profile not found");
-        return null;
-      }
+ 
+ const generateTrip = async () => {
+  const user = localStorage.getItem("user");
+  if (!user) {
+    setopendialog(true);
+    return;
+  }
 
-      // Generate a unique ID for the trip
-      const timestamp = new Date().getTime();
-      const randomString = Math.random().toString(36).substring(2, 8);
-      const tripId = `TRIP-${timestamp}-${randomString}`;
+  if (!validateForm()) return;
 
-      const tripData = {
-        id: tripId,
-        plan: tripPlanText,
-        destination: FormData.location?.label,
-        days: FormData.noOFdays,
-        budget: FormData.budget,
-        travelers: FormData.people,
-        userId: userProfile.id,
-        userEmail: userProfile.email,
-        userName: userProfile.name,
-        createdAt: serverTimestamp(),
-        status: 'active',
-        lastModified: serverTimestamp()
-      };
+  setIsGenerating(true);
+  try {
+    const finalAiPrompt = AI_Prompt
+      .replace("{location}", FormData.location?.label)
+      .replace("{totalDays}", FormData.noOfDays)
+      .replace("{traveler}", FormData.people)
+      .replace("{budget}", FormData.budget);
 
-      // Use the generated tripId as the document ID
-      const tripRef = doc(db, "trips", tripId);
-      await setDoc(tripRef, tripData);
+    console.log("Final AI Prompt:", finalAiPrompt);
 
-      console.log("Trip saved with ID:", tripId);
-      return tripId;
-    } catch (error) {
-      console.error("Error saving trip:", error);
-      return null;
-    }
-  };
-
-  const generateTrip = async () => {
-    const user = localStorage.getItem("user");
-    if (!user) {
-      setopendialog(true);
-      toast.error("Please login to continue");
-      return;
+    const result = await chatSession.sendMessage(finalAiPrompt);
+    if (!result?.response) {
+      throw new Error("No response from AI");
     }
 
-    if (isGenerating) return;
-    if (!validateForm()) return;
+    const responseText = await result.response.text();
+    console.log("AI Response:", responseText);
 
+    // Attempt to extract JSON from the response
+    let tripPlanText;
     try {
-      setIsGenerating(true);
-      toggleScroll(true);
-      
-      const toastId = toast.loading("Generating your personalized trip plan...");
-
-      const finalPrompt = AI_Prompt.replace("{location}", FormData?.location?.label)
-        .replace("{totalDays}", FormData?.noOFdays)
-        .replace("{traveler}", FormData?.people)
-        .replace("{budget}", FormData?.budget);
-
-      const result = await chatSession.sendMessage(finalPrompt);
-      const aiResponse = await result?.response?.text();
-      
-      // Save the trip first
-      const savedId = await SaveAiTrip(aiResponse);
-      
-      toast.dismiss(toastId);
-
-      if (savedId) {
-        // Store trip data in localStorage
-        const tripData = {
-          plan: aiResponse,
-          destination: FormData.location?.label,
-          days: FormData.noOFdays,
-          budget: FormData.budget,
-          travelers: FormData.people,
-          id: savedId,
-          createdAt: new Date().toISOString()
-        };
-        
-        localStorage.setItem('currentTripData', JSON.stringify(tripData));
-        
-        // Use React Router's navigate instead of window.location
-        navigate(`/view-trip/${savedId}`);
-        toast.success("Your trip plan is ready!");
+      // Use regex to extract JSON if wrapped in code blocks
+      const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
+      if (jsonMatch) {
+        tripPlanText = jsonMatch[1];
       } else {
-        toast.error("Failed to save trip");
+        // If no JSON markers, try parsing the entire response
+        tripPlanText = JSON.parse(responseText);
       }
-
-    } catch (error) {
-      console.error("Error generating trip:", error);
-      toast.error("Unable to generate trip plan. Please try again.");
-    } finally {
-      setIsGenerating(false);
-      toggleScroll(false);
+    } catch (jsonError) {
+      console.error("JSON parsing error:", jsonError);
+      throw new Error("Invalid JSON format in AI response");
     }
-  };
+
+    if (tripPlanText) {
+      await SaveAiTrip(tripPlanText);
+    } else {
+      throw new Error("Failed to extract JSON from AI response");
+    }
+
+  } catch (error) {
+    console.error("Error generating trip:", error);
+    toast.error(error.message || "Failed to generate trip");
+  } finally {
+    setIsGenerating(false);
+  }
+};
+const SaveAiTrip = async (tripData) => {
+  try {
+    setLoading(true);
+
+    const localUser = JSON.parse(localStorage.getItem("userProfile"));
+    if (!localUser || !localUser.email) {
+      throw new Error("User profile or email not found");
+    }
+
+    const docId = Date.now().toString();
+    
+    const tripDocument = {
+      userSelection: FormData,
+      tripPlan: JSON.parse(tripData), // Ensure tripPlan is parsed as JSON
+      userEmail: localUser.email,
+      userId: localUser.id,
+      userName: localUser.name || "",
+      createdAt: serverTimestamp(),
+      lastModified: serverTimestamp(),
+      status: 'active'
+    };
+
+    console.log("Saving trip document:", tripDocument);
+
+    await setDoc(doc(db, "trips", docId), tripDocument);
+    
+    toast.success("Trip saved successfully!");
+    navigate(`/view-trip/${docId}`);
+    
+  } catch (error) {
+    console.error("Error saving trip:", error);
+    toast.error(`Failed to save trip: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     console.log("Form Data", FormData);
@@ -270,8 +268,10 @@ const CreateTrip = () => {
           <Input
             placeholder={"Ex-3"}
             type="number"
-            onChange={(e) => handleInputChange("noOFdays", e.target.value)}
+            onChange={(e) => handleInputChange("noOfDays", e.target.value)}
+            
           />
+          <p className="text-sm text-gray-500"> *You can plan a trip for up to 5 days</p>
         </div>
       </div>
 
@@ -341,17 +341,19 @@ const CreateTrip = () => {
       <Dialog open={opendialog} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogDescription>
+            <DialogTitle>Sign In Required</DialogTitle>
+            <DialogDescription asChild>
               <div className="flex flex-col items-center text-center">
                 <img src="/logo.svg" alt="Logo" className="w-20 h-20 mb-4" />
                 <h2 className="font-bold text-2xl my-2">
                   Sign in with Google to continue
                 </h2>
-                <p className="text-gray-500 mb-6">
+                <div className="text-gray-500 mb-6">
                   Sign in to the app with Google authentication secure
-                </p>
+                </div>
 
                 <Button 
+                  
                   className="w-full mt-5 flex items-center justify-center gap-2"
                   onClick={() => loginWithGoogle()}
                 >

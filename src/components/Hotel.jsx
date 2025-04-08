@@ -5,6 +5,7 @@ const Hotel = ({trip}) => {
   let hotels = [];
   try {
     if (trip?.plan) {
+      // Ensure the plan is parsed as JSON
       const parsedPlan = JSON.parse(trip.plan);
       hotels = parsedPlan.hotelOptions || [];
       console.log('Extracted hotels:', hotels);
