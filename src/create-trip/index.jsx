@@ -161,6 +161,7 @@ const CreateTrip = () => {
     }
 
     if (tripPlanText) {
+      setTripPlan(tripPlanText);
       await SaveAiTrip(tripPlanText);
     } else {
       throw new Error("Failed to extract JSON from AI response");
@@ -186,7 +187,7 @@ const SaveAiTrip = async (tripData) => {
     
     const tripDocument = {
       userSelection: FormData,
-      tripPlan: JSON.parse(tripData), // Ensure tripPlan is parsed as JSON
+      tripPlan: tripData,
       userEmail: localUser.email,
       userId: localUser.id,
       userName: localUser.name || "",
@@ -232,6 +233,8 @@ const SaveAiTrip = async (tripData) => {
       toggleScroll(false);
     };
   }, []);
+
+  console.log("Trip Plan:", tripPlan);
 
   return (
     <div className="sm:px-10  md:px-32  lg:px-56 xl:px-10 px-5 mt-10">

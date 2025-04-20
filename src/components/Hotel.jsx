@@ -1,96 +1,139 @@
-import React from 'react'
+import React, { useEffect, useState } from "react";
+import { fetchImagesForHotels } from "./services/serpApiService";
 
-const Hotel = ({trip}) => {
-  // Parse the plan string to get hotel options
-  let hotels = [];
-  try {
-    if (trip?.plan) {
-      // Ensure the plan is parsed as JSON
-      const parsedPlan = JSON.parse(trip.plan);
-      hotels = parsedPlan.hotelOptions || [];
-      console.log('Extracted hotels:', hotels);
-    }
-  } catch (error) {
-    console.error('Error parsing plan:', error);
-  }
+const Hotel = ({ trip }) => {
+  const [imageUrls, setImageUrls] = useState({});
+  const [loading, setLoading] = useState(true);
 
-  if (!hotels || hotels.length === 0) {
+  // Get hotels data
+  const Allhotels = trip?.tripPlan?.travelPlan?.hotels ||
+    trip?.tripPlan?.[0]?.hotels ||
+    trip?.tripPlan?.recommendedHotels ||
+    trip?.tripPlan?.hotels ||
+    trip?.tripPlan?.hotelRecommendations ||
+    trip?.tripPlan?.[0]?.hotelRecommendations ||
+    trip?.tripPlan?.[0]?.travelPlan?.hotelRecommendations ||
+    trip?.tripPlan?.[0]?.travelPlan?.hotels ||
+    trip?.tripPlan?.[0]?.hotels ||
+    trip?.tripPlan?.[0]?.recommendedHotels ||
+    trip?.tripPlan?.[0]?.hotels ||
+    trip?.tripPlan?.travelPlan?.hotels ||
+    trip?.tripPlan?.travelPlan?.hotelRecommendations ||
+    trip?.tripPlan?.hotelRecommendations ||
+    trip?.tripPlan?.recommendedHotels ||
+    trip?.tripPlan?.hotels ||
+    trip?.tripPlan?.[0]?.itinerary ||
+    trip?.tripPlan?.[0]?.travelPlan?.itinerary ||
+    [];
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      if (trip && Allhotels.length > 0) {
+        setLoading(true);
+        try {
+          const location = trip?.userSelection?.location?.label;
+          const hotelNames = Allhotels.map(hotel => hotel.hotelName);
+          const images = await fetchImagesForHotels(hotelNames, location);
+          setImageUrls(images);
+        } catch (error) {
+          console.error("Error fetching hotel images:", error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    fetchImages();
+  }, [trip, Allhotels]);
+
+  // Render loading state
+  if (!trip || loading) {
     return (
       <div className="mt-6">
-        <h2 className='font-bold text-2xl mb-4'>Hotel Recommendations</h2>
+        <h2 className="font-bold text-2xl mb-4">Hotel Recommendations</h2>
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-          <p className="text-yellow-700">No hotel recommendations available at the moment.</p>
+          <p className="text-yellow-700">Loading hotel recommendations...</p>
         </div>
       </div>
     );
   }
 
-  // Helper function to format price display with error handling
-  const formatPrice = (price) => {
-    if (!price) return 'Price not available';
-    
-    // If it's already a string with ₹, return as is
-    if (typeof price === 'string' && price.includes('₹')) {
-      return price;
-    }
-    
-    // Handle the dollar sign conversion if needed
-    if (typeof price === 'string') {
-      switch(price) {
-        case '$$$': return '₹₹₹';
-        case '$$': return '₹₹';
-        case '$': return '₹';
-        default: return price;
-      }
-    }
-    
-    return 'Price not available';
-  };
+  // Render empty state
+  if (!Array.isArray(Allhotels) || Allhotels.length === 0) {
+    return (
+      <div className="mt-6">
+        <h2 className="font-bold text-2xl mb-4">Hotel Recommendations</h2>
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-yellow-700">
+            No hotel recommendations available at the moment.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
+  // Render hotels
   return (
-    <div className="mt-6">
-      <h2 className='font-bold text-2xl mb-4'>Hotel Recommendations</h2>
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
-        {hotels.map((hotel, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-            <img 
-              src={hotel.hotelImageUrl} 
-              alt={hotel.hotelName} 
-              className='w-full h-48 object-cover'
-              onError={(e) => {
-                e.target.src = 'https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1';
-              }}
-            />
-            <div className="p-4">
-              <h3 className="font-semibold text-lg mb-2">{hotel.hotelName || 'Hotel Name Not Available'}</h3>
-              <p className="text-gray-600 text-sm mb-1 line-clamp-2">{hotel.hotelAddress || 'Address Not Available'}</p>
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-gray-600">{formatPrice(hotel.price)}</p>
-                <p className="text-yellow-500">{'⭐'.repeat(Math.round(hotel.rating || 0))}</p>
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="mt-6">
+        <h2 className="font-bold text-3xl mb-6 text-center text-gray-800">
+          Hotel Recommendations
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {Allhotels.map((hotel, index) => {
+            const imageUrl = imageUrls[hotel.hotelName] || 
+                           hotel.hotelImageUrl || 
+                           "https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg";
+            return (
+              <div
+                key={index}
+                className="cursor-pointer bg-white rounded-xl shadow-lg overflow-hidden transition-transform transform hover:scale-105 hover:shadow-2xl"
+                onClick={() =>
+                  window.open(
+                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                      hotel.hotelName + " " + (hotel.hotelAddress || "")
+                    )}`,
+                    "_blank"
+                  )
+                }
+              >
+                <img
+                  src={imageUrl}
+                  alt={hotel.hotelName}
+                  className="w-full h-64 object-cover"
+                  onError={(e) => {
+                    e.target.src =
+                      "https://images.pexels.com/photos/271639/pexels-photo-271639.jpeg";
+                  }}
+                />
+                <div className="p-6">
+                  <h3 className="font-bold text-2xl mb-3 text-gray-900">
+                    {hotel.hotelName || "Hotel Name Not Available"}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    {hotel.hotelAddress || "Address Not Available"}
+                  </p>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-gray-700 font-semibold">
+                      {hotel.price || "Price Not Available"}
+                    </p>
+                    <p className="text-yellow-500">
+                      {hotel.rating || "Rating Not Available"}
+                    </p>
+                  </div>
+                  <p className="text-gray-500 text-sm line-clamp-3">
+                    {hotel.description || "No description available"}
+                  </p>
+                </div>
               </div>
-              <p className="text-gray-500 text-sm mb-3 line-clamp-3">{hotel.description || 'No description available'}</p>
-              <div className="flex gap-2">
-                {hotel.geoCoordinates && (
-                  <button 
-                    className="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors text-sm"
-                    onClick={() => window.open(`https://www.google.com/maps?q=${hotel.geoCoordinates.latitude},${hotel.geoCoordinates.longitude}`, '_blank')}
-                  >
-                    View on Map
-                  </button>
-                )}
-                <button 
-                  className="flex-1 bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 transition-colors text-sm"
-                  onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(hotel.hotelName + ' ' + (hotel.hotelAddress || ''))}`, '_blank')}
-                >
-                  Book Now
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Hotel
+export default Hotel;
