@@ -9,7 +9,13 @@ const Itinerary = ({ trip, initialImageUrls }) => {
 
   const countryName = trip?.userSelection?.location?.label || "";
 
-  const dailyItinerary = trip?.tripPlan?.[0]?.itinerary || [];
+  // ✅ Use the correct source for itinerary data
+  const dailyItinerary =
+    trip?.tripPlan?.[0]?.itinerary ||
+    trip?.tripPlan?.itinerary ||
+    trip?.tripPlan?.dailyItinerary ||
+    [];
+
   console.log("dailyItinerary", dailyItinerary);
 
   useEffect(() => {
@@ -21,10 +27,15 @@ const Itinerary = ({ trip, initialImageUrls }) => {
 
       try {
         setLoading(true);
+
+        // ✅ Extract places using "places" array (not "activities")
         const places = dailyItinerary
           .flatMap(day => day.places || [])
           .map(place => place.place_name || place.placeName);
-        const images = await fetchImagesForPlaces(places, countryName);
+
+        const uniquePlaces = [...new Set(places)]; // optional: remove duplicates
+        const images = await fetchImagesForPlaces(uniquePlaces, countryName);
+
         setPlaceImages(images);
       } catch (error) {
         console.error("Error fetching place images:", error);
@@ -64,8 +75,9 @@ const Itinerary = ({ trip, initialImageUrls }) => {
             (day.places || []).map((place, activityIndex) => {
               const placeName = place.place_name || place.placeName;
               const imageSrc =
-                placeImages[placeName] ||
-                "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg";
+                placeImages[placeName] && placeImages[placeName] !== ""
+                  ? placeImages[placeName]
+                  : "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg";
 
               return (
                 <div
@@ -83,7 +95,7 @@ const Itinerary = ({ trip, initialImageUrls }) => {
                   <div className="p-6 flex flex-col justify-between bg-gray-100">
                     <div>
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                        Day {day.day_number || dayIndex + 1}:{" "}
+                        Day {day.day || day.day_number || dayIndex + 1}:{" "}
                         {placeName || "Unknown Place"}
                       </h3>
                       <p className="text-gray-700 text-sm mb-3">
@@ -99,7 +111,7 @@ const Itinerary = ({ trip, initialImageUrls }) => {
                         </p>
                         <p className="text-gray-600 font-medium">
                           🚗 Travel Time:{" "}
-                          {place.time_to_spend || place.timeTravel || place.timeToSpend || "N/A"}
+                          {place.timeTravel || place.timeToSpend || "N/A"}
                         </p>
                       </div>
                     </div>
