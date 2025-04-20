@@ -1,7 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
     darkMode: ["class"],
-    content: ["index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+    content: [
+        "./src/**/*.{js,jsx,ts,tsx}",
+    ],
   theme: {
   	extend: {
   		borderRadius: {
@@ -49,7 +51,12 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+  			'ice-cold': '#a0d2eb',
+  			'freeze-purple': '#e5eaf5',
+  			'medium-purple': '#d0bdf4',
+  			'purple-pain': '#8458B3',
+  			'heavy-purple': '#a28089',
   		}
   	}
   },

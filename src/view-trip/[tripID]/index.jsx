@@ -25,15 +25,14 @@ const ViewTrip = () => {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        console.log("Document data:", data);
+        console.log("Trip data:", data);
         setTripData(data);
         await fetchAllImages(data);
       } else {
-        console.log("No such document");
-        toast.error("No such document");
+        toast.error("No such trip found");
       }
     } catch (error) {
-      console.error("Error fetching trip data:", error);
+      console.error("Error fetching trip:", error);
       toast.error("Error fetching trip data");
     }
   };
@@ -43,18 +42,18 @@ const ViewTrip = () => {
       const location = data?.userSelection?.location?.label;
       
       // Fetch hotel images
-      const hotels = data.tripPlan?.hotels || [];
+      const hotels = data.tripPlan?.hotelRecommendations || [];
       if (hotels.length > 0) {
-        const hotelNames = hotels.map(hotel => hotel.hotelName);
-        const hotelImgs = await fetchImagesForHotels(hotelNames, location);
+        const hotelImgs = await fetchImagesForHotels(hotels, location);
         setHotelImages(hotelImgs);
       }
 
       // Fetch itinerary images
-      const itineraryPlaces = data.tripPlan?.dailyItinerary || [];
-      if (itineraryPlaces.length > 0) {
-        const placeNames = itineraryPlaces.map(place => place.placeName);
-        const placeImgs = await fetchImagesForPlaces(placeNames, location);
+      const places = data.tripPlan?.dailyItinerary?.flatMap(day => 
+        day.places.map(place => place.placeName)
+      ) || [];
+      if (places.length > 0) {
+        const placeImgs = await fetchImagesForPlaces(places, location);
         setItineraryImages(placeImgs);
       }
     } catch (error) {

@@ -8,6 +8,9 @@ import Header from './components/custom/Header'
 import { Toaster } from './components/ui/sonner'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import ViewTrip from './view-trip/[tripID]'
+import SavedTrips from './components/SavedTrips'
+import About from './pages/About'
+import Contact from './pages/Contact'
 import ErrorBoundary from '@/components/ErrorBoundary'
 
 const router = createBrowserRouter([
@@ -41,6 +44,36 @@ const router = createBrowserRouter([
     ),
     errorElement: <ErrorBoundary />
   },
+  {
+    path: '/saved-trips',
+    element: (
+      <>
+        <Header />
+        <SavedTrips />
+      </>
+    ),
+    errorElement: <ErrorBoundary />
+  },
+  {
+    path: '/about',
+    element: (
+      <>
+        <Header />
+        <About />
+      </>
+    ),
+    errorElement: <ErrorBoundary /> 
+  },
+  {
+    path: '/contact',
+    element: (
+      <>
+        <Header />
+        <Contact />
+      </>
+    ),
+    errorElement: <ErrorBoundary />
+  }
 ]);
 
 createRoot(document.getElementById('root')).render(

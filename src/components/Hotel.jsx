@@ -24,6 +24,7 @@ const Hotel = ({ trip }) => {
     trip?.tripPlan?.hotels ||
     trip?.tripPlan?.[0]?.itinerary ||
     trip?.tripPlan?.[0]?.travelPlan?.itinerary ||
+    trip?.tripPlan?.trip_plan?.hotels ||
     [];
 
   useEffect(() => {
@@ -110,21 +111,21 @@ const Hotel = ({ trip }) => {
                 />
                 <div className="p-6">
                   <h3 className="font-bold text-2xl mb-3 text-gray-900">
-                    {hotel.hotelName || "Hotel Name Not Available"}
+                    {hotel.hotelName || hotel.name || hotel["Hotel Name"] || hotel["Hotel Name"] || hotel["Name"] || hotel.hotel_name||"Hotel Name Not Available"}
                   </h3>
                   <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {hotel.hotelAddress || "Address Not Available"}
+                    {hotel.hotelAddress || hotel.address || hotel["Hotel Address"] || hotel["Hotel Address"] || hotel["Address"] || hotel.hotel_address || "Address Not Available"}
                   </p>
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-gray-700 font-semibold">
-                      {hotel.price || "Price Not Available"}
+                      {hotel.price || hotel["Price (in USD)"] || hotel["Price (in INR)"] || "Price Not Available"}
                     </p>
                     <p className="text-yellow-500">
-                      {hotel.rating || "Rating Not Available"}
+                      {hotel.rating || hotel["Rating (4 stars and above)"] || "Rating Not Available"}
                     </p>
                   </div>
                   <p className="text-gray-500 text-sm line-clamp-3">
-                    {hotel.description || "No description available"}
+                    {hotel.description || hotel["Description"] || "No description available"}
                   </p>
                 </div>
               </div>
