@@ -60,9 +60,11 @@ export const fetchImagesForPlaces = async (places, location) => {
       console.log(`Serper API Response for ${place}:`, result);
 
       if (result.images && result.images.length > 0) {
-        newImages[place] = result.images[0].imageUrl;
+        newImages[place] = result.images[0].googleUrl;
+        console.log("newImages", newImages);
       } else {
         newImages[place] = "";
+        console.log("didn't find image");
       }
     } catch (err) {
       errors.push(`Error fetching image for ${place}: ${err.message}`);

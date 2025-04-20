@@ -38,3 +38,9 @@
 .read-the-docs {
   color: #888;
 }
+
+@media (max-width: 754px) {
+  .text-black-at-754 {
+    color: black;
+  }
+}

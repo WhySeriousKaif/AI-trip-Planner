@@ -1,13 +1,8 @@
-// services/imageService.js
-import { createClient } from "pexels";
-
-const client = createClient("GAQKxaIKW5wVenrDnADhaqHCi4Fx4F5LnVAB2rTqZ6bawVlAO5Hhg3aJ");
-
-export const fetchImagesForHotels = async (hotels, location) => {
+const fetchImages = async (queries, type, location) => {
   const newImages = {};
   const errors = [];
 
-  for (const hotel of hotels) {
+  for (const query of queries) {
     try {
       const response = await fetch("https://google.serper.dev/images", {
         method: "POST",
@@ -16,64 +11,40 @@ export const fetchImagesForHotels = async (hotels, location) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          q: `${hotel.hotelName} hotel ${location || 'India'}`,
+          q: `${query} ${type} ${location || "India"}`,
           gl: "in",
         }),
       });
 
       const result = await response.json();
-      console.log(`Serper API Response for ${hotel.hotelName}:`, result);
+      console.log(`Serper API Response for ${query}:`, result);
 
       if (result.images && result.images.length > 0) {
-        newImages[hotel.hotelName] = result.images[0].imageUrl;
+        newImages[query] = result.images[0].googleUrl || result.images[0].imageUrl;
       } else {
-        newImages[hotel.hotelName] = "";
+        newImages[query] = "";
       }
     } catch (err) {
-      console.error(`Error fetching image for ${hotel.hotelName}:`, err);
-      newImages[hotel.hotelName] = "";
+      errors.push(`Error fetching image for ${query}: ${err.message}`);
+      console.error("Error:", err);
+      newImages[query] = "";
     }
+  }
+
+  if (errors.length > 0) {
+    console.error(errors.join("\n"));
   }
 
   return newImages;
 };
 
-export const fetchImagesForPlaces = async (places, location) => {
-  const newImages = {};
-  const errors = [];
+export const fetchImagesForHotels = (hotelNames, location) =>
+  fetchImages(hotelNames, "hotel", location);
 
-  for (const place of places) {
-    try {
-      const response = await fetch("https://google.serper.dev/images", {
-        method: "POST",
-        headers: {
-          "X-API-KEY": "d85a44f8bce30e1c1852c7e8fca338e5c718a87f",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          q: `${place} tourist place ${location || 'India'}`,
-          gl: "in",
-        }),
-      });
+export const fetchImagesForPlaces = (places, location) =>
+  fetchImages(places, "tourist place", location);
 
-      const result = await response.json();
-      console.log(`Serper API Response for ${place}:`, result);
-
-      if (result.images && result.images.length > 0) {
-        newImages[place] = result.images[0].imageUrl;
-      } else {
-        newImages[place] = "";
-      }
-    } catch (err) {
-      console.error(`Error fetching image for ${place}:`, err);
-      newImages[place] = "";
-    }
-  }
-
-  return newImages;
-};
-
-export const fetchSingleImage = async (query) => {
+export const fetchSingleImage = async (query, location) => {
   try {
     const response = await fetch("https://google.serper.dev/images", {
       method: "POST",
@@ -82,7 +53,7 @@ export const fetchSingleImage = async (query) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        q: query,
+        q: `${query} ${location || ""}`,
         gl: "in",
       }),
     });
@@ -91,7 +62,7 @@ export const fetchSingleImage = async (query) => {
     console.log(`Serper API Response for ${query}:`, result);
 
     if (result.images && result.images.length > 0) {
-      return result.images[0].imageUrl;
+      return result.images[0].googleUrl || result.images[0].imageUrl;
     }
     return "";
   } catch (err) {

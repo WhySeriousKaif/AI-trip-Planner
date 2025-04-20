@@ -63,7 +63,9 @@ const ViewTrip = () => {
   };
 
   return (
-    <div className="sm:px-10 md:px-20 lg:px-44 xl:px-56 mt-5 w-full">
+    <div className="sm:px-10 md:px-20 lg:px-44 xl:px-56  w-full 
+    bg-gradient-to-r from-ice-cold to-freeze-purple bg-cover bg-center
+    ">
       <Infosection trip={tripData} />
       <Hotel trip={tripData} imageUrls={hotelImages} />
       <Itinerary trip={tripData} initialImageUrls={itineraryImages} />

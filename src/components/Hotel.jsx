@@ -8,6 +8,7 @@ const Hotel = ({ trip }) => {
   // Get hotels data
   const Allhotels = trip?.tripPlan?.travelPlan?.hotels ||
     trip?.tripPlan?.[0]?.hotels ||
+    trip?.tripPlan?.[0]?.hotel_recommendations ||
     trip?.tripPlan?.recommendedHotels ||
     trip?.tripPlan?.hotels ||
     trip?.tripPlan?.hotelRecommendations ||
@@ -25,7 +26,16 @@ const Hotel = ({ trip }) => {
     trip?.tripPlan?.[0]?.itinerary ||
     trip?.tripPlan?.[0]?.travelPlan?.itinerary ||
     trip?.tripPlan?.trip_plan?.hotels ||
+    trip?.tripPlan?.hotelOptions ||
+    trip?.tripPlan?.travelPlan?.hotelOptions ||
+    trip?.tripPlan?.travelPlan?.hotels ||
+    trip?.tripPlan?.travelPlan?.hotelRecommendations ||
+    trip?.tripPlan?.travelPlan?.recommendedHotels ||
+    trip?.tripPlan?.travelPlan?.hotel_recommendations ||
+    trip?.tripPlan?.travelPlan?.recommended_hotels ||
+    
     [];
+    console.log( "Allhotels", Allhotels);
 
   useEffect(() => {
     const fetchImages = async () => {
@@ -118,14 +128,14 @@ const Hotel = ({ trip }) => {
                   </p>
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-gray-700 font-semibold">
-                      {hotel.price || hotel["Price (in USD)"] || hotel["Price (in INR)"] || "Price Not Available"}
+                      {hotel.price || hotel["Price (in USD)"] || hotel["Price (in INR)"]||hotel.price_in_usd||hotel.price_range_inr || "Price Not Available"}
                     </p>
                     <p className="text-yellow-500">
                       {hotel.rating || hotel["Rating (4 stars and above)"] || "Rating Not Available"}
                     </p>
                   </div>
                   <p className="text-gray-500 text-sm line-clamp-3">
-                    {hotel.description || hotel["Description"] || "No description available"}
+                    {hotel.description || hotel["Description"] || "No description available "}
                   </p>
                 </div>
               </div>
