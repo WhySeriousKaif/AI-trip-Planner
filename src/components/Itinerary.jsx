@@ -24,6 +24,8 @@ const Itinerary = ({ trip, initialImageUrls }) => {
     trip?.tripPlan?.[0]?.daily_Itinerary ||
     trip?.tripPlan?.travelPlan?.itinerary ||
     trip?.tripPlan?.travelPlan?.dailyItinerary ||
+    trip?.tripPlan?.travelPlan?.daily_itinerary ||
+    trip?.tripPlan?.trip_plan?.daily_itinerary ||
     trip?.itinerary ||
     trip?.dailyItinerary ||
     trip?.placesToVisit?.[0]?.itinerary ||

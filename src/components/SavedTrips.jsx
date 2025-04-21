@@ -7,6 +7,7 @@ import UserTripCardItem from "./UserTripCardItem";
 
 const SavedTrips = () => {
   const [userTrips, setUserTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,6 +30,8 @@ const SavedTrips = () => {
     } catch (error) {
       console.error("Error fetching trips:", error);
       toast.error("Failed to fetch trips. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 

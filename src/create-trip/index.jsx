@@ -21,6 +21,7 @@ import axios from "axios";
 import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
 import { db } from "./fireBaseConfig";
 import { useNavigate } from "react-router-dom";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const CreateTrip = () => {
   const [place, setPlace] = useState({});
@@ -242,6 +243,7 @@ const CreateTrip = () => {
       className="sm:px-10 md:px-32 lg:px-56 xl:px-10 px-5  bg-gradient-to-r from-ice-cold to-freeze-purple bg-cover bg-center"
       
     >
+      {isGenerating && <LoadingScreen />}
       <h2 className="font-bold text-3xl">
         Tell us your travel preferences 🏕️🌴
       </h2>
