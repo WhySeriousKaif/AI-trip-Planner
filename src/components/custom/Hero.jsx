@@ -10,7 +10,7 @@ const Hero = () => {
     <div
       className='flex flex-col items-center px-4 sm:px-6 md:px-8 lg:px-16 xl:px-60 gap-6 md:gap-9 bg-gradient-to-r from-ice-cold to-freeze-purple bg-cover bg-center h-full w-full   '
       style={{
-        backgroundImage: "url('src/assets/1.jpg')",
+        backgroundImage: "url('https://images.unsplash.com/photo-1506748686214-e9df14d4d9d0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDJ8fHRyaXZlbHxlbnwwfHx8fDE2OTY5NTQ1MjA&ixlib=rb-4.0.3&q=80&w=1080')", // Replace with your image URL
         height: '100vh', // Full viewport height
         backgroundSize: 'cover', // Ensures the image covers the entire area
         backgroundPosition: 'center', // Centers the image

@@ -8,7 +8,7 @@ function Contact() {
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-6 md:mb-0">
               <img
-                src={"src/assets/7.jpeg" || "https://images.pexels.com/photos/3183197/pexels-photo-3183197.jpeg"}
+                src={ "https://images.pexels.com/photos/3183197/pexels-photo-3183197.jpeg"}
                 alt="Contact"
                 className="w-full h-auto rounded-lg shadow-md"
               />
