@@ -9,12 +9,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  optimizeDeps: {
-    exclude: ['isomorphic-fetch']
-  },
-  build: {
-    rollupOptions: {
-      external: ['isomorphic-fetch']
-    }
-  }
+  // require("isomorphic-fetch")
+  
 })
