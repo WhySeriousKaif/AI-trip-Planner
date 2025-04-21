@@ -17,7 +17,7 @@ function Header() {
   };
 
   return (
-    <div className="bg-gradient-to-r from-indigo-300 to-indigo-700 shadow-md fixed top-0 w-full z-50">
+    <div className="bg-gradient-to-r from-indigo-300 to-indigo-700 shadow-md   w-full z-50 ">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         {/* Logo */}
         <Link
@@ -25,7 +25,7 @@ function Header() {
           className="flex items-center gap-2 hover:opacity-90 transition-opacity"
         >
           <img src="/logo.svg" alt="WonderMate Logo" className="h-8" />
-          <span className="text-2xl font-bold bg-gradient-to-r from-red-500 via-yellow-600 to-blue-900 bg-clip-text text-transparent">
+          <span className="text-2xl font-bold ">
             WonderMate
           </span>
         </Link>

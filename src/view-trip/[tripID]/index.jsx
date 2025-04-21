@@ -63,10 +63,25 @@ const ViewTrip = () => {
     }
   };
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Check out my trip on WonderMate!',
+        text: 'Here is the link to my trip itinerary.',
+        url: window.location.href,
+      })
+      .then(() => console.log('Successful share'))
+      .catch((error) => console.error('Error sharing', error));
+    } else {
+      toast.error("Sharing is not supported on this browser.");
+    }
+  };
+
   return (
     <div className="sm:px-10 md:px-20 lg:px-44 xl:px-56  w-full 
     bg-gradient-to-r from-ice-cold to-freeze-purple bg-cover bg-center
     ">
+
       <Infosection trip={tripData} />
       <Hotel trip={tripData} imageUrls={hotelImages} />
       <Itinerary trip={tripData} initialImageUrls={itineraryImages} />

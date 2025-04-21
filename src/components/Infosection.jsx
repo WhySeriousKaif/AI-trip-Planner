@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { IoSend } from "react-icons/io5";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 const Infosection = ({ trip }) => {
   const [place, setPlace] = useState("");
@@ -53,6 +54,20 @@ const Infosection = ({ trip }) => {
     }
   };
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Check out my trip on WonderMate!',
+        text: 'Here is the link to my trip itinerary.',
+        url: window.location.href,
+      })
+      .then(() => console.log('Successful share'))
+      .catch((error) => console.error('Error sharing', error));
+    } else {
+      toast.error("Sharing is not supported on this browser.");
+    }
+  };
+
   // Add console.log to debug the data
   console.log("Trip data in TripInformation:", trip);
 
@@ -99,7 +114,7 @@ const Infosection = ({ trip }) => {
             </h2>
           </div>
           <div>
-            <Button>
+            <Button onClick={handleShare}>
               <IoSend />
             </Button>
           </div>
