@@ -194,7 +194,8 @@ const CreateTrip = () => {
         userName: localUser.name || "",
         createdAt: serverTimestamp(),
         lastModified: serverTimestamp(),
-        status: 'active'
+        status: 'active',
+        id: docId
       };
 
       console.log("Saving trip document:", tripDocument);
