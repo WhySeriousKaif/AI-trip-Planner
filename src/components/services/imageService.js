@@ -1,3 +1,8 @@
+import { createClient } from "pexels";
+
+// Initialize Pexels client
+const client = createClient("GAQKxaIKW5wVenrDnADhaqHCi4Fx4F5LnVAB2rTqZ6bawVlAO5Hhg3aJ");
+
 const fetchImages = async (queries, type, location) => {
   const newImages = {};
   const errors = [];
@@ -38,8 +43,29 @@ const fetchImages = async (queries, type, location) => {
   return newImages;
 };
 
-export const fetchImagesForHotels = (hotelNames, location) =>
-  fetchImages(hotelNames, "hotel", location);
+export const fetchImagesForHotels = async (hotelNames, location) => {
+  const hotelImages = {};
+  console.log("hotelNames", hotelNames);
+
+  for (const hotel of hotelNames) {
+    if (!hotel || typeof hotel !== "string") continue;
+
+    try {
+      const res = await client.photos.search({ query: hotel, per_page: 1 });
+
+      if (res && Array.isArray(res.photos) && res.photos.length > 0) {
+        hotelImages[hotel] = res.photos[0].src.large;
+      } else {
+        hotelImages[hotel] = ""; // fallback empty string if not found
+      }
+    } catch (err) {
+      console.error(`Error fetching hotel image for "${hotel}":`, err);
+      hotelImages[hotel] = ""; // fallback if error
+    }
+  }
+
+  return hotelImages;
+};
 
 export const fetchImagesForPlaces = (places, location) =>
   fetchImages(places, "tourist place", location);

@@ -49,34 +49,42 @@ function Header() {
           </Link>
 
           {user ? (
-            <Popover>
-              <PopoverTrigger>
-                <img
-                  src={user?.picture || user?.profilePicture}
-                  alt="User"
-                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-full cursor-pointer object-cover border-2 border-white hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    e.target.src = "https://via.placeholder.com/40"; // Fallback image
-                  }}
-                />
-              </PopoverTrigger>
-              <PopoverContent className="w-48 sm:w-56 bg-white text-gray-800 shadow-xl rounded-lg">
-                <div className="p-4">
-                  <div className="mb-3 pb-3 border-b">
-                    <p className="font-semibold">{user?.name || user?.email}</p>
-                    <p className="text-sm text-gray-500">{user?.email}</p>
+            <>
+              <Link to="/saved-trips" className="hover:underline hover:text-gray-200 transition-colors duration-300 text-sm sm:text-base">
+                View Trips
+              </Link>
+              <Popover>
+                <PopoverTrigger>
+                  <img
+                    src={user?.picture || user?.profilePicture}
+                    alt="User"
+                    className="h-8 w-8 sm:h-10 sm:w-10 rounded-full cursor-pointer object-cover border-2 border-white hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      e.target.src = "https://via.placeholder.com/40"; // Fallback image
+                    }}
+                  />
+                </PopoverTrigger>
+                <PopoverContent className="w-48 sm:w-56 bg-white text-gray-800 shadow-xl rounded-lg">
+                  <div className="p-4">
+                    <div className="mb-3 pb-3 border-b">
+                      <p className="font-semibold">{user?.name || user?.email}</p>
+                      <p className="text-sm text-gray-500">{user?.email}</p>
+                    </div>
+                    <button
+                      className="w-full text-left text-red-600 hover:text-red-800 transition-colors py-2"
+                      onClick={handleLogout}
+                    >
+                      Logout
+                    </button>
                   </div>
-                  <button
-                    className="w-full text-left text-red-600 hover:text-red-800 transition-colors py-2"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </button>
-                </div>
-              </PopoverContent>
-            </Popover>
+                </PopoverContent>
+              </Popover>
+            </>
           ) : (
-            null
+            <GoogleLogin
+              onSuccess={handleLoginSuccess}
+              onError={handleLoginError}
+            />
           )}
         </div>
       </div>

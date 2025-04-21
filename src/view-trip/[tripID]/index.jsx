@@ -7,7 +7,8 @@ import Infosection from "@/components/Infosection";
 import Hotel from "@/components/Hotel";
 import Itinerary from "@/components/Itinerary";
 import Footer from "@/components/Footer";
-import { fetchImagesForHotels, fetchImagesForPlaces } from "@/components/services/serpApiService";
+// import { fetchImagesForHotels, fetchImagesForPlaces } from "@/components/services/serpApiService";
+import { fetchImagesForHotels, fetchImagesForPlaces } from "@/components/services/imageService";
 
 const ViewTrip = () => {
   const { tripID } = useParams();

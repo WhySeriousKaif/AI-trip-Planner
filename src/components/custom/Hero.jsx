@@ -4,16 +4,17 @@ import { Link } from 'react-router-dom'
 import { Popover, PopoverTrigger, PopoverContent } from '../ui/popover'
 
 
+
 const Hero = () => {
   return (
     <div
       className='flex flex-col items-center px-4 sm:px-6 md:px-8 lg:px-16 xl:px-60 gap-6 md:gap-9 bg-gradient-to-r from-ice-cold to-freeze-purple bg-cover bg-center h-full w-full   '
-      // style={{
-      //   backgroundImage: "url('src/assets/1.jpg')",
-      //   height: '100vh', // Full viewport height
-      //   backgroundSize: 'cover', // Ensures the image covers the entire area
-      //   backgroundPosition: 'center', // Centers the image
-      // }}
+      style={{
+        backgroundImage: "url('src/assets/1.jpg')",
+        height: '100vh', // Full viewport height
+        backgroundSize: 'cover', // Ensures the image covers the entire area
+        backgroundPosition: 'center', // Centers the image
+      }}
 
     >
       <h1 className='font-extrabold text-[28px]    sm:text-[35px] md:text-[42px] lg:text-[50px] text-center mt-8 md:mt-16'>

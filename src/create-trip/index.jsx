@@ -156,6 +156,7 @@ const CreateTrip = () => {
         }
       } catch (jsonError) {
         console.error("JSON parsing error:", jsonError);
+        console.error("Response causing error:", responseText);
         throw new Error("Invalid JSON format in AI response");
       }
 

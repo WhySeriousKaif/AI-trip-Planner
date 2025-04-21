@@ -1,57 +1,70 @@
 import React, { useEffect, useState } from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
-import { fetchImagesForPlaces } from "@/components/services/imageService";
-import { fetchImagesForHotels } from "@/components/services/serpApiService";
 
 const Itinerary = ({ trip, initialImageUrls }) => {
   const [placeImages, setPlaceImages] = useState(initialImageUrls || {});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const countryName = trip?.userSelection?.location?.label || "";
-
-  // ✅ Use the correct source for itinerary data
   const dailyItinerary =
+    trip?.tripPlan?.[0]?.activities ||
+    trip?.tripPlan?.[0]?.travel_plan?.itinerary ||
     trip?.tripPlan?.[0]?.itinerary ||
+    trip?.tripPlan?.[0]?.dailyItinerary ||
+    trip?.tripPlan?.[0]?.travelPlan?.itinerary ||
+    trip?.tripPlan?.[0]?.travelPlan?.dailyItinerary ||
+    trip?.tripPlan?.travel_plan?.itinerary ||
+    trip?.tripPlan?.travel_plan?.dailyItinerary ||
+    trip?.tripPlan?.travel_plan?.daily_itinerary ||
+    trip?.tripPlan?.travel_plan?.daily_Itinerary ||
     trip?.tripPlan?.itinerary ||
     trip?.tripPlan?.dailyItinerary ||
+    trip?.tripPlan?.daily_Itinerary ||
+    trip?.tripPlan?.daily_itinerary ||
+    trip?.tripPlan?.[0]?.daily_itinerary ||
+    trip?.tripPlan?.[0]?.daily_Itinerary ||
+    trip?.tripPlan?.travelPlan?.itinerary ||
+    trip?.tripPlan?.travelPlan?.dailyItinerary ||
+    trip?.itinerary ||
+    trip?.dailyItinerary ||
+    trip?.placesToVisit?.[0]?.itinerary ||
+    trip?.placesToVisit?.[0]?.dailyItinerary ||
+    trip?.placesToVisit?.itinerary ||
+    trip?.placesToVisit?.dailyItinerary ||
+    trip?.placesToVisit ||
     [];
+    console.log("dailyItinerary",dailyItinerary);
 
-  console.log("dailyItinerary", dailyItinerary);
+  const tripLocation =
+    trip?.userSelection?.location?.label || trip?.tripPlan?.[0]?.location || "Unknown Location";
 
   useEffect(() => {
     const fetchImages = async () => {
-      if (!dailyItinerary.length) {
-        setLoading(false);
-        return;
-      }
-
-      try {
+      if (dailyItinerary.length > 0) {
         setLoading(true);
-
-        // ✅ Extract places using "places" array (not "activities")
-        const places = dailyItinerary
-          .flatMap(day => day.places || [])
-          .map(place => place.place_name || place.placeName);
-
-        const uniquePlaces = [...new Set(places)]; // optional: remove duplicates
-        const images = await fetchImagesForPlaces(uniquePlaces, countryName);
-
-        setPlaceImages(images);
-      } catch (error) {
-        console.error("Error fetching place images:", error);
-      } finally {
-        setLoading(false);
+        try {
+          const allPlaces = dailyItinerary.flatMap((itineraryItem) =>
+            (itineraryItem.activities || []).map(
+              (place) =>
+                place["Place Name"] ||
+                place.place_name ||
+                place.placeName ||
+                "Unknown Place"
+            )
+          );
+          // const images = await fetchImagesForPlaces(allPlaces, tripLocation);
+          // setPlaceImages(images);
+        } catch (error) {
+          console.error("Error fetching place images:", error);
+        } finally {
+          setLoading(false);
+        }
       }
     };
 
     if (!initialImageUrls || Object.keys(initialImageUrls).length === 0) {
       fetchImages();
     }
-  }, [dailyItinerary, trip]);
-
-  if (loading) {
-    return <div>Loading itinerary images...</div>;
-  }
+  }, [trip, dailyItinerary, initialImageUrls]);
 
   if (!Array.isArray(dailyItinerary) || dailyItinerary.length === 0) {
     return (
@@ -64,78 +77,61 @@ const Itinerary = ({ trip, initialImageUrls }) => {
     );
   }
 
-  return (
-    <div className="shadow-lg rounded-lg">
-      <div className="p-6 mt-6">
-        <h2 className="text-center text-3xl font-bold mb-8 text-gray-800">
-          Daily Itinerary
-        </h2>
-        <div className="grid gap-8 bg-gray-100">
-          {dailyItinerary.map((day, dayIndex) =>
-            (day.places || []).map((place, activityIndex) => {
-              const placeName = place.place_name || place.placeName;
-              const imageSrc =
-                placeImages[placeName] && placeImages[placeName] !== ""
-                  ? placeImages[placeName]
-                  : "https://images.pexels.com/photos/1271619/pexels-photo-1271619.jpeg";
+  const renderPlaceCard = (place, index) => {
+    const placeName = place["Place Name"] || place.place_name || place.placeName || "Unknown Place";
+    const ticket = place["Ticket Pricing"] || place.ticketPricing || place.ticket_pricing || place.ticket || place.cost || "Not available";
+    const bestTime = place["Best Time to Visit"] || place.bestTime || place.best_time || place.bestTimeToVisit || place.best_time_to_visit || place.visitTime || place.recommendedTime || "Unknown";
+    const travelTime = place["Time Travel"] || place.travelTime || place.timeTravel || place.time_travel || place.timeToTravel || place.time_to_travel || place.estimatedTime || place.estimated_time || place.estimated_duration || place.duration || place.duration_in_hours || place.timeToReach || place.estimatedTimeSpent || "N/A";
+    const description = place["Place Details"] || place.details || place.placeDetails || place.place_details || place.description || place.summary || "No description available";
 
-              return (
-                <div
-                  key={`${dayIndex}-${activityIndex}`}
-                  className="grid grid-cols-1 md:grid-cols-2 bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
-                >
-                  <img
-                    src={imageSrc}
-                    alt={placeName}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                    onError={(e) => {
-                      e.target.src = "/fallback-image.jpg";
-                    }}
-                  />
-                  <div className="p-6 flex flex-col justify-between bg-gray-100">
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                        Day {day.day || day.day_number || dayIndex + 1}:{" "}
-                        {placeName || "Unknown Place"}
-                      </h3>
-                      <p className="text-gray-700 text-sm mb-3">
-                        {place.place_details || place.placeDetails || "No description available"}
-                      </p>
-
-                      <div className="text-sm space-y-1">
-                        <p className="text-green-700 font-medium">
-                          🎟️ Ticket: {place.ticketPricing || "Not available"}
-                        </p>
-                        <p className="text-indigo-600 font-medium">
-                          🕒 Best Time: {place.bestTimeToVisit || "Unknown"}
-                        </p>
-                        <p className="text-gray-600 font-medium">
-                          🚗 Travel Time:{" "}
-                          {place.timeTravel || place.timeToSpend || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-
-                    {placeName && (
-                      <div className="flex items-center mt-5 text-sm text-blue-600 hover:underline">
-                        <FaMapMarkerAlt className="mr-2" />
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                            `${placeName}, ${countryName}`
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          View on Google Maps
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          )}
+    return (
+      <div key={index} className="bg-white rounded-xl shadow-md p-6">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center">
+            {index + 1}
+          </div>
+          <h3 className="text-xl font-bold text-blue-800">{placeName}</h3>
         </div>
+        <p className="text-gray-700 mt-2">{description}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mt-4">
+          <div className="bg-green-50 p-3 rounded-md border border-green-100">
+            <span className="block text-sm font-medium text-green-700">🎟️ Ticket</span>
+            <span className="text-gray-900">{ticket}</span>
+          </div>
+          <div className="bg-indigo-50 p-3 rounded-md border border-indigo-100">
+            <span className="block text-sm font-medium text-indigo-700">🕒 Best Time</span>
+            <span className="text-gray-900">{bestTime}</span>
+          </div>
+          <div className="bg-purple-50 p-3 rounded-md border border-purple-100">
+            <span className="block text-sm font-medium text-purple-700">🚗 Travel Time</span>
+            <span className="text-gray-900">{travelTime}</span>
+          </div>
+        </div>
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+            `${placeName}, ${tripLocation}`
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-4 inline-flex items-center text-blue-600 hover:underline"
+        >
+          <FaMapMarkerAlt className="mr-2" /> View on Google Maps
+        </a>
+      </div>
+    );
+  };
+
+  return (
+    <div className="container mx-auto p-6 bg-gray-100 rounded-xl shadow-md mt-6">
+      <h2 className="text-center text-3xl font-bold text-blue-900 mb-8">Your Travel Itinerary</h2>
+      <p className="text-center text-gray-600 mb-10">Explore the beautiful destinations of {tripLocation}</p>
+      <div className="space-y-10">
+        {dailyItinerary.map((day, dayIndex) => (
+          <div key={dayIndex} className="space-y-6">
+            <h3 className="text-2xl font-bold text-gray-800 mb-4">Day {dayIndex + 1}</h3>
+            {(day.activities || day.places ||day.schedule || [day]).map((place, index) => renderPlaceCard(place, index))}
+          </div>
+        ))}
       </div>
     </div>
   );
