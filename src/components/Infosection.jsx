@@ -71,8 +71,8 @@ const Infosection = ({ trip }) => {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="relative">
+    <div className="flex flex-col gap-6  rounded-lg ">
+      <div className="relative mt-2">
         {imageUrl ? (
           <img
             src={imageUrl}

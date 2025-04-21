@@ -30,7 +30,7 @@ function Header() {
   };
 
   return (
-    <div className="bg-gradient-to-r from-blue-500 via-pink-300 to-yellow-500 text-white shadow-lg rounded-lg">
+    <div className="bg-gradient-to-r from-blue-500 via-pink-300 to-yellow-500 text-white shadow-lg ">
       <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center">
         {/* Logo and Brand Name */}
         <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity duration-300">

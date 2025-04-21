@@ -21,7 +21,7 @@ const Hero = () => {
         <span className='text-[#f56551]'>Discover Your Next Adventure:</span>{' '}
         Personalized Planned Journey At Your FingerTips!
       </h1>
-      <p className='  sm:text-lg  md:text-xl text-black text-center mt-4 md:mt-10 max-w-3xl '>
+      <p className='  sm:text-lg  md:text-xl text-gray-200 text-center mt-4 md:mt-10 max-w-3xl '>
         Your personal trip planner and travel curator, creating custom itineraries tailored to your interests and budget
       </p>
       <Link to="/create-trip" className='mt-4 md:mt-6'>
