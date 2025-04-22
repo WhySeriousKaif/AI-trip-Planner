@@ -30,7 +30,7 @@ const Hero = () => {
       <div
         className="relative flex flex-col items-center justify-center text-center px-6 md:px-16 bg-cover bg-center w-full min-h-screen"
         style={{
-          backgroundImage: "url('public/hello.gif')",
+          backgroundImage: "url('/hello.gif')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
