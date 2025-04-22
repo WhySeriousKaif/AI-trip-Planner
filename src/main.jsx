@@ -4,7 +4,6 @@ import './index.css'
 import App from './App.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import CreateTrip from './create-trip/index.jsx'
-import Header from './components/custom/Header'
 import { Toaster } from './components/ui/sonner'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import ViewTrip from './view-trip/[tripID]'
@@ -18,7 +17,6 @@ const router = createBrowserRouter([
     path: '/',
     element: (
       <>
-        <Header />
         <App />
       </>
     ),
@@ -28,7 +26,6 @@ const router = createBrowserRouter([
     path: '/create-trip',
     element: (
       <>
-        <Header />
         <CreateTrip />
       </>
     ),
@@ -38,7 +35,6 @@ const router = createBrowserRouter([
     path: '/view-trip/:tripID',
     element: (
       <>
-        <Header />
         <ViewTrip />
       </>
     ),
@@ -48,7 +44,6 @@ const router = createBrowserRouter([
     path: '/saved-trips',
     element: (
       <>
-        <Header />
         <SavedTrips />
       </>
     ),
@@ -58,7 +53,6 @@ const router = createBrowserRouter([
     path: '/about',
     element: (
       <>
-        <Header />
         <About />
       </>
     ),
@@ -68,7 +62,6 @@ const router = createBrowserRouter([
     path: '/contact',
     element: (
       <>
-        <Header />
         <Contact />
       </>
     ),

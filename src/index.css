@@ -73,3 +73,15 @@ body,
   margin: 0;
   padding: 0;
 }
+@keyframes colorPulse {
+  0%, 100% {
+    color: black;
+  }
+  50% {
+    color: white;
+  }
+}
+
+.animate-color-pulse {
+  animation: colorPulse 2s infinite ease-in-out;
+}

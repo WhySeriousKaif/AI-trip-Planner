@@ -1,38 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
+import { fetchImagesForPlaces } from "@/components/services/serpApiService"; // Ensure this import is correct
 
 const Itinerary = ({ trip, initialImageUrls }) => {
   const [placeImages, setPlaceImages] = useState(initialImageUrls || {});
   const [loading, setLoading] = useState(false);
 
   const dailyItinerary =
-    trip?.tripPlan?.[0]?.activities ||
+    trip?.tripPlan?.itinerary?.[0]?.activities ||
     trip?.tripPlan?.[0]?.travel_plan?.itinerary ||
-    trip?.tripPlan?.[0]?.itinerary ||
-    trip?.tripPlan?.[0]?.dailyItinerary ||
-    trip?.tripPlan?.[0]?.travelPlan?.itinerary ||
-    trip?.tripPlan?.[0]?.travelPlan?.dailyItinerary ||
-    trip?.tripPlan?.travel_plan?.itinerary ||
-    trip?.tripPlan?.travel_plan?.dailyItinerary ||
-    trip?.tripPlan?.travel_plan?.daily_itinerary ||
-    trip?.tripPlan?.travel_plan?.daily_Itinerary ||
     trip?.tripPlan?.itinerary ||
-    trip?.tripPlan?.dailyItinerary ||
-    trip?.tripPlan?.daily_Itinerary ||
-    trip?.tripPlan?.daily_itinerary ||
-    trip?.tripPlan?.[0]?.daily_itinerary ||
-    trip?.tripPlan?.[0]?.daily_Itinerary ||
-    trip?.tripPlan?.travelPlan?.itinerary ||
-    trip?.tripPlan?.travelPlan?.dailyItinerary ||
-    trip?.tripPlan?.travelPlan?.daily_itinerary ||
-    trip?.tripPlan?.trip_plan?.daily_itinerary ||
-    trip?.itinerary ||
-    trip?.dailyItinerary ||
-    trip?.placesToVisit?.[0]?.itinerary ||
-    trip?.placesToVisit?.[0]?.dailyItinerary ||
-    trip?.placesToVisit?.itinerary ||
-    trip?.placesToVisit?.dailyItinerary ||
-    trip?.placesToVisit ||
     [];
     console.log("dailyItinerary",dailyItinerary);
 
@@ -53,8 +30,8 @@ const Itinerary = ({ trip, initialImageUrls }) => {
                 "Unknown Place"
             )
           );
-          // const images = await fetchImagesForPlaces(allPlaces, tripLocation);
-          // setPlaceImages(images);
+          const images = await fetchImagesForPlaces(allPlaces, tripLocation);
+          setPlaceImages(images);
         } catch (error) {
           console.error("Error fetching place images:", error);
         } finally {
@@ -87,38 +64,44 @@ const Itinerary = ({ trip, initialImageUrls }) => {
     const description = place["Place Details"] || place.details || place.placeDetails || place.place_details || place.description || place.summary || "No description available";
 
     return (
-      <div key={index} className="bg-white rounded-xl shadow-md p-6">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center">
-            {index + 1}
+      <div key={index} className="bg-white rounded-xl shadow-lg p-6 flex flex-col sm:flex-row hover:shadow-xl transition-shadow duration-300">
+        {/* Placeholder for Image Section */}
+
+
+        {/* Information Section */}
+        <div className="flex-1 pl-0 sm:pl-6 mt-4 sm:mt-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center">
+              {index + 1}
+            </div>
+            <h3 className="text-xl font-bold text-blue-800">{placeName}</h3>
           </div>
-          <h3 className="text-xl font-bold text-blue-800">{placeName}</h3>
+          <p className="text-gray-700 mt-2">{description}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mt-4">
+            <div className="bg-green-50 p-3 rounded-md border border-green-100">
+              <span className="block text-sm font-medium text-green-700">🎟️ Ticket</span>
+              <span className="text-gray-900">{ticket}</span>
+            </div>
+            <div className="bg-indigo-50 p-3 rounded-md border border-indigo-100">
+              <span className="block text-sm font-medium text-indigo-700">🕒 Best Time</span>
+              <span className="text-gray-900">{bestTime}</span>
+            </div>
+            <div className="bg-purple-50 p-3 rounded-md border border-purple-100">
+              <span className="block text-sm font-medium text-purple-700">🚗 Travel Time</span>
+              <span className="text-gray-900">{travelTime}</span>
+            </div>
+          </div>
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              `${placeName}, ${tripLocation}`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center text-blue-600 hover:underline"
+          >
+            <FaMapMarkerAlt className="mr-2" /> View on Google Maps
+          </a>
         </div>
-        <p className="text-gray-700 mt-2">{description}</p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mt-4">
-          <div className="bg-green-50 p-3 rounded-md border border-green-100">
-            <span className="block text-sm font-medium text-green-700">🎟️ Ticket</span>
-            <span className="text-gray-900">{ticket}</span>
-          </div>
-          <div className="bg-indigo-50 p-3 rounded-md border border-indigo-100">
-            <span className="block text-sm font-medium text-indigo-700">🕒 Best Time</span>
-            <span className="text-gray-900">{bestTime}</span>
-          </div>
-          <div className="bg-purple-50 p-3 rounded-md border border-purple-100">
-            <span className="block text-sm font-medium text-purple-700">🚗 Travel Time</span>
-            <span className="text-gray-900">{travelTime}</span>
-          </div>
-        </div>
-        <a
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-            `${placeName}, ${tripLocation}`
-          )}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-4 inline-flex items-center text-blue-600 hover:underline"
-        >
-          <FaMapMarkerAlt className="mr-2" /> View on Google Maps
-        </a>
       </div>
     );
   };
@@ -131,7 +114,7 @@ const Itinerary = ({ trip, initialImageUrls }) => {
         {dailyItinerary.map((day, dayIndex) => (
           <div key={dayIndex} className="space-y-6">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">Day {dayIndex + 1}</h3>
-            {(day.activities || day.places ||day.schedule || [day]).map((place, index) => renderPlaceCard(place, index))}
+            {(day.activities || day.places || day.schedule || [day]).map((place, index) => renderPlaceCard(place, index))}
           </div>
         ))}
       </div>

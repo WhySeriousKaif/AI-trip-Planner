@@ -1,6 +1,5 @@
 import { Input } from "@/components/ui/input";
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import GooglePlacesAutocomplete from "react-google-places-autocomplete";
 import { AI_Prompt, SelectTravelsList } from "@/constants/options";
 import { SelectBudgetOptions } from "@/constants/option2";
@@ -13,15 +12,15 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { FcGoogle } from "react-icons/fc";
 import { useGoogleLogin } from "@react-oauth/google";
 import axios from "axios";
-import { collection, addDoc, serverTimestamp, doc, setDoc } from "firebase/firestore";
+import { collection, setDoc, serverTimestamp, doc } from "firebase/firestore";
 import { db } from "./fireBaseConfig";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LoadingScreen from "@/components/LoadingScreen";
+import Header from "@/components/custom/Header";
 
 const CreateTrip = () => {
   const [place, setPlace] = useState({});
@@ -29,7 +28,6 @@ const CreateTrip = () => {
   const [opendialog, setopendialog] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [tripPlan, setTripPlan] = useState(null);
-  const [savedTripId, setSavedTripId] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -84,18 +82,6 @@ const CreateTrip = () => {
       toast.error("Login Failed");
     }
   });
-
-  const checkTokenExpiration = () => {
-    const userSection= JSON.parse(localStorage.getItem("user"));
-    if (!user) return false;
-
-    // Check if token is expired (expires_in is in seconds)
-    const expirationTime = user.expires_in * 1000; // Convert to milliseconds
-    const currentTime = new Date().getTime();
-    const tokenTimestamp = new Date(user.expiry_date).getTime();
-
-    return currentTime < tokenTimestamp;
-  };
 
   const validateForm = () => {
     const errors = [];
@@ -239,141 +225,141 @@ const CreateTrip = () => {
   console.log("Trip Plan:", tripPlan);
 
   return (
-    <div
-      className="sm:px-10 md:px-32 lg:px-56 xl:px-10 px-5  bg-gradient-to-r from-ice-cold to-freeze-purple bg-cover bg-center"
-      
-    >
+    <div className="relative bg-gradient-to-r from-ice-cold to-freeze-purple bg-cover bg-center w-full min-h-screen flex flex-col">
+      <Header />
       {isGenerating && <LoadingScreen />}
-      <h2 className="font-bold text-3xl">
-        Tell us your travel preferences 🏕️🌴
-      </h2>
-      <p className="mt-3 text-white-500 text-xl">
-        Just provide some basic information, and our trip planner will generate
-        a customized itinerary based on your preferences.
-      </p>
-
-      {/* form  */}
-      <div className="mt-20 flex flex-col gap-10">
-        <div>
-          <h2 className="text-xl my-2 font-medium">
-            What is your destination of choice?
-          </h2>
-          <GooglePlacesAutocomplete
-            apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
-            selectProps={{
-              place,
-              onChange: (v) => {
-                setPlace(v);
-                handleInputChange("location", v);
-              },
-              placeholder: "Search for a destination...",
-              isDisabled: isGenerating,
-            }}
-          />
-        </div>
-        <div>
-          <h2 className="text-xl my-2 font-medium"> How many days are you planing your trip?</h2>
-          <Input
-            placeholder={"Ex-3"}
-            type="number"
-            onChange={(e) => handleInputChange("noOfDays", e.target.value)}
-            disabled={isGenerating}
-          />
-          <p className="text-sm text-white-500"> *You can plan a trip for up to 5 days</p>
-        </div>
-      </div>
-
-      {/* Budget Selection */}
-      <div>
-        <h2 className="text-xl my-2 font-medium">What is Your Budget?</h2>
-
-        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {SelectBudgetOptions.map((item,index) => (
-            <div
-              key={index}
-              onClick={() => !isGenerating && handleInputChange("budget", item.title)}
-              className={`p-5 border rounded-lg flex gap-5 items-center hover:shadow-md transition-all duration-200 cursor-pointer
-                ${FormData?.budget === item.title ? "border-blue-500 bg-blue-50" : ""} ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
-            >
-              {/* icon */}
-              <div className="w-10 h-10 flex justify-center items-center text-4xl">
-                {item.icon}
-              </div>
-              <div>
-                <h2 className="font-bold text-lg ">{item.title}</h2>
-                <p className="text-sm text-gray-500">{item.desc}</p>
-                <p className="text-sm font-medium text-black">{item.cost}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Travel Type */}
-      <div className="mt-10">
-        <h2 className="text-xl my-2 font-medium">
-          What do you plan on traveling with on your next adventure ?
+      <div className="sm:px-10 md:px-32 lg:px-56 xl:px-10 px-5 w-full flex-grow">
+        <h2 className="font-bold text-3xl mt-20">
+          Tell us your travel preferences 🏕️🌴
         </h2>
-        <div className="grid grid-cols-1  sm:grid-cols-2  md:grid-cols-3  lg:grid-cols-4 gap-5">
-          {SelectTravelsList.map((item, index) => (
-            <div
-              key={index}
-              className={`p-5 border rounded-lg flex gap-5 items-center hover:shadow-md transition-all duration-200 cursor-pointer
-                ${FormData?.people === item.people ? "border-blue-500 bg-blue-50" : ""} ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
-              onClick={() => !isGenerating && handleInputChange("people", item.people)}
-            >
-              {/* icon */}
-              <div className="w-10 h-10 text-4xl flex justify-center items-center">
-                {item.icon}
-              </div>
-              <div>
-                <h2 className="font-bold text-lg">{item.title}</h2>
-                <p className="text-sm text-gray-500">{item.desc}</p>
-                <p className="text-black">{item.people}</p>
-              </div>
-            </div>
-          ))}
+        <p className="mt-3 text-white-500 text-xl">
+          Just provide some basic information, and our trip planner will generate
+          a customized itinerary based on your preferences.
+        </p>
+
+        {/* form  */}
+        <div className="mt-20 flex flex-col gap-10">
+          <div>
+            <h2 className="text-xl my-2 font-medium">
+              What is your destination of choice?
+            </h2>
+            <GooglePlacesAutocomplete
+              apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+              selectProps={{
+                place,
+                onChange: (v) => {
+                  setPlace(v);
+                  handleInputChange("location", v);
+                },
+                placeholder: "Search for a destination...",
+                isDisabled: isGenerating,
+              }}
+            />
+          </div>
+          <div>
+            <h2 className="text-xl my-2 font-medium"> How many days are you planing your trip?</h2>
+            <Input
+              placeholder={"Ex-3"}
+              type="number"
+              onChange={(e) => handleInputChange("noOfDays", e.target.value)}
+              disabled={isGenerating}
+            />
+            <p className="text-sm text-white-500"> *You can plan a trip for up to 5 days</p>
+          </div>
         </div>
-      </div>
-      {/* Button */}
 
-      <div className="mt-10 flex justify-end mb-10 mr-10">
-        <Button 
-          onClick={generateTrip} 
-          className="px-6 py-2"
-          disabled={isGenerating}
-        >
-          {isGenerating ? 'Generating...' : 'Generate Trip'}
-        </Button>
-      </div>
-      <Dialog open={opendialog} onOpenChange={handleDialogClose}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Sign In Required</DialogTitle>
-            <DialogDescription asChild>
-              <div className="flex flex-col items-center text-center">
-                <img src="/logo.svg" alt="Logo" className="w-20 h-20 mb-4" />
-                <h2 className="font-bold text-2xl my-2">
-                  Sign in with Google to continue
-                </h2>
-                <div className="text-gray-500 mb-6">
-                  Sign in to the app with Google authentication secure
+        {/* Budget Selection */}
+        <div>
+          <h2 className="text-xl my-2 font-medium">What is Your Budget?</h2>
+
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            {SelectBudgetOptions.map((item,index) => (
+              <div
+                key={index}
+                onClick={() => !isGenerating && handleInputChange("budget", item.title)}
+                className={`p-5 border rounded-lg flex gap-5 items-center hover:shadow-md transition-all duration-200 cursor-pointer
+                  ${FormData?.budget === item.title ? "border-blue-500 bg-blue-50" : ""} ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                {/* icon */}
+                <div className="w-10 h-10 flex justify-center items-center text-4xl">
+                  {item.icon}
                 </div>
-
-                <Button 
-                  
-                  className="w-full mt-5 flex items-center justify-center gap-2"
-                  onClick={() => loginWithGoogle()}
-                  disabled={isGenerating}
-                >
-                  <FcGoogle className="text-xl" />
-                  Sign In with Google
-                </Button>
+                <div>
+                  <h2 className="font-bold text-lg ">{item.title}</h2>
+                  <p className="text-sm text-gray-500">{item.desc}</p>
+                  <p className="text-sm font-medium text-black">{item.cost}</p>
+                </div>
               </div>
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+            ))}
+          </div>
+        </div>
+
+        {/* Travel Type */}
+        <div className="mt-10">
+          <h2 className="text-xl my-2 font-medium">
+            What do you plan on traveling with on your next adventure ?
+          </h2>
+          <div className="grid grid-cols-1  sm:grid-cols-2  md:grid-cols-3  lg:grid-cols-4 gap-5">
+            {SelectTravelsList.map((item, index) => (
+              <div
+                key={index}
+                className={`p-5 border rounded-lg flex gap-5 items-center hover:shadow-md transition-all duration-200 cursor-pointer
+                  ${FormData?.people === item.people ? "border-blue-500 bg-blue-50" : ""} ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={() => !isGenerating && handleInputChange("people", item.people)}
+              >
+                {/* icon */}
+                <div className="w-10 h-10 text-4xl flex justify-center items-center">
+                  {item.icon}
+                </div>
+                <div>
+                  <h2 className="font-bold text-lg">{item.title}</h2>
+                  <p className="text-sm text-gray-500">{item.desc}</p>
+                  <p className="text-black">{item.people}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Button */}
+
+        <div className="mt-10 flex justify-center mb-20 mr-10 ">
+          <Button 
+            onClick={generateTrip} 
+            className="px-6 py-2 mb-10  "
+            disabled={isGenerating}
+          >
+            {isGenerating ? 'Generating...' : 'Generate Trip'}
+          </Button>
+        </div>
+        <Dialog open={opendialog} onOpenChange={handleDialogClose}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Sign In Required</DialogTitle>
+              <DialogDescription asChild>
+                <div className="flex flex-col items-center text-center">
+                  <img src="/logo.svg" alt="Logo" className="w-20 h-20 mb-4" />
+                  <h2 className="font-bold text-2xl my-2">
+                    Sign in with Google to continue
+                  </h2>
+                  <div className="text-gray-500 mb-6">
+                    Sign in to the app with Google authentication secure
+                  </div>
+
+                  <Button 
+                    
+                    className="w-full mt-5 flex items-center justify-center gap-2"
+                    onClick={() => loginWithGoogle()}
+                    disabled={isGenerating}
+                  >
+                    <FcGoogle className="text-xl" />
+                    Sign In with Google
+                  </Button>
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

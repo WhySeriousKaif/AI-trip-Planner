@@ -1,12 +1,15 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+// Initialize Gemini with your API key
 const apiKey = import.meta.env.VITE_GOOGLE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
+// Configure the Gemini model
 const model = genAI.getGenerativeModel({
   model: "gemini-2.5-pro-preview-03-25",
 });
 
+// Define generation config
 const generationConfig = {
   temperature: 1,
   topP: 0.95,
@@ -16,6 +19,7 @@ const generationConfig = {
   responseMimeType: "application/json",
 };
 
+// Define chat session with strict JSON format prompt
 export const chatSession = model.startChat({
   generationConfig,
   history: [
@@ -23,32 +27,58 @@ export const chatSession = model.startChat({
       role: "user",
       parts: [
         {
-          text: `Generate a detailed travel plan for Las Vegas for 4 days for a couple on a budget. 
-          Include a list of hotels with the following details: 
-          - Hotel Name
-          - Hotel Address
-          - Price (in USD)
-          - Rating (4 stars and above)
-          - Hotel Image URL
-          - Geo Coordinates
-          - Description
+          text: `
+Generate a detailed travel plan for Las Vegas for 4 days for a couple on a budget.
 
-          Provide a day-wise itinerary with the following details for each day:
-          - Day Number
-          - Place Name
-          - Place Details
-          - Place Image URL
-          - Geo Coordinates
-          - Ticket Pricing
-          - Time Travel
-          - Best Time to Visit
+Respond strictly in this JSON format:
 
-          Ensure the response is in JSON format and consistent across all prompts.`,
+{
+  "hotels": [
+    {
+      "name": "",
+      "address": "",
+      "price": "",
+      "rating": "",
+      "imageUrl": "",
+      "geo": {
+        "lat": "",
+        "lng": ""
+      },
+      "description": ""
+    }
+  ],
+  "itinerary": [
+    {
+      "day": 1,
+      "activities": [
+        {
+          "placeName": "",
+          "details": "",
+          "imageUrl": "",
+          "geo": {
+            "lat": "",
+            "lng": ""
+          },
+          "ticketPricing": "",
+          "travelTime": "",
+          "bestTimeToVisit": ""
+        }
+      ]
+    }
+  ]
+}
+
+Ensure:
+- JSON is valid and properly formatted.
+- All string values are double-quoted.
+- Consistent structure across all days and places.
+- Include 3–4 places per day.
+- Use realistic data.
+
+Only respond with valid JSON. No explanations, markdown, or extra text.
+          `,
         },
       ],
     },
   ],
 });
-
-  
-  
