@@ -20,8 +20,8 @@ const SavedTrips = () => {
     if (!user || !user.email) {
       toast.error("User not logged in or profile missing. Please sign in.");
       navigate("/login");
-      return;
-    }
+          return;
+     }
 
     try {
       const q = query(collection(db, "trips"), where("userEmail", "==", user.email));

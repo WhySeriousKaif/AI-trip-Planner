@@ -3,6 +3,8 @@ import { Button } from "../ui/button";
 import { Link } from "react-router-dom";
 import Header from "@/components/custom/Header";
 
+
+
 const Hero = () => {
   return (
     <>
@@ -28,7 +30,7 @@ const Hero = () => {
       <div
         className="relative flex flex-col items-center justify-center text-center px-6 md:px-16 bg-cover bg-center w-full min-h-screen"
         style={{
-          backgroundImage: "url('public/Las Vegas Travel GIF by Imagine Dragons.gif')",
+          backgroundImage: "url('public/hello.gif')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

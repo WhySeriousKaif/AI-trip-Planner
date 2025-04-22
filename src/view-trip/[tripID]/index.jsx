@@ -89,10 +89,10 @@ const ViewTrip = () => {
   
       {/* Content area with same padding */}
       <div className="sm:px-10 md:px-20 lg:px-44 xl:px-56 pt-20">
-        <Infosection trip={tripData} />
-        <Hotel trip={tripData} imageUrls={hotelImages} />
-        <Itinerary trip={tripData} initialImageUrls={itineraryImages} />
-        <Footer />
+      <Infosection trip={tripData} />
+      <Hotel trip={tripData} imageUrls={hotelImages} />
+      <Itinerary trip={tripData} initialImageUrls={itineraryImages} />
+      <Footer />
       </div>
       
     </div>
