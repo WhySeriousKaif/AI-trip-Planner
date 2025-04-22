@@ -1,10 +1,13 @@
-
-
 # WonderMate - AI Trip Planner
 
 WonderMate is a cutting-edge application designed to help you plan your trips with ease and efficiency. Our platform leverages advanced AI algorithms to provide personalized travel recommendations, optimize itineraries, and ensure you have the best travel experience possible.
 
-## Features
+## Website Preview
+
+![Website Landing Page](public/landing1.png)  
+*A glimpse of the WonderMate landing page showcasing its sleek and user-friendly design.*
+
+## Features at a Glance
 
 - **Personalized Travel Recommendations**: 
   - Our AI analyzes your preferences and travel history to suggest destinations and activities tailored to your interests.
@@ -13,10 +16,6 @@ WonderMate is a cutting-edge application designed to help you plan your trips wi
 - **Itinerary Optimization**: 
   - Automatically generate detailed itineraries that maximize your time and enjoyment.
   - Includes travel times, suggested activities, and optimal routes.
-
-- **Image Fetching**: 
-  - Fetch high-quality images for destinations and hotels using external APIs.
-  - Provides a visual preview of your potential travel experiences.
 
 - **Responsive Design**: 
   - Enjoy a seamless experience across all devices, from desktops to smartphones.
@@ -35,14 +34,6 @@ WonderMate is a cutting-edge application designed to help you plan your trips wi
 - **Tailwind CSS**: 
   - Provides a utility-first approach to styling, enabling rapid UI development.
   - Ensures a consistent and modern look across the application.
-
-- **Node.js**: 
-  - Serves as the backend runtime, handling server-side logic and API requests.
-  - Facilitates real-time data processing and communication.
-
-- **Express**: 
-  - A web framework for Node.js, used to build the server and handle routing.
-  - Simplifies the creation of robust and scalable web applications.
 
 - **APIs**: 
   - Integration with external APIs for image fetching and AI recommendations.
@@ -91,14 +82,23 @@ WonderMate is a cutting-edge application designed to help you plan your trips wi
 - **Itinerary Page**: 
   - View and customize your generated itinerary.
   - Add or remove activities, adjust travel times, and more.
+  ![Website Itinerary Page](public/itinerary.png) 
+  ![Website Itinerary Page](public/iti.png) 
+
+- **View Trip**: 
+  - Access a detailed overview of your planned trip.
+  - Includes a summary of destinations, activities, and travel times.
+  ![Website View Trip Page](public/view.png)
 
 - **Contact Page**: 
   - Reach out to us with any questions or feedback.
   - Use the contact form to send us a message directly.
+  ![Website contact Page](public/contact.png) 
 
 - **About Page**: 
   - Learn more about the AI Trip Planner and its features.
   - Discover the team behind the application and our mission.
+    ![Website About Page](public/about.png) 
 
 ## Contributing
 

@@ -9,7 +9,7 @@ export default function Component() {
         <div className="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
           <div className="flex items-center justify-center">
             <div className="mr-2 h-6 w-6 animate-spin text-gray-500 dark:text-gray-400" />
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300"> 🌍 Curating your dream escape…</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300"> 🌍Please Wait a moment, Curating your dream escape…</p>
           </div>
         </div>
       </div>
