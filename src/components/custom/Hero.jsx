@@ -3,8 +3,6 @@ import { Button } from "../ui/button";
 import { Link } from "react-router-dom";
 import Header from "@/components/custom/Header";
 
-
-
 const Hero = () => {
   return (
     <>
@@ -27,18 +25,26 @@ const Hero = () => {
         }
       `}</style>
 
-      <div
-        className="relative flex flex-col items-center justify-center text-center px-6 md:px-16 bg-cover bg-center w-full min-h-screen"
-        style={{
-          backgroundImage: "url('/GIF by The Last Tourist.gif')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <Header />
+      <div className="relative flex flex-col items-center justify-center text-center px-6 md:px-16 w-full min-h-screen">
+        {/* Video Background */}
+        <video
+          autoPlay
+          loop
+          muted
+          className="absolute top-0 left-0 w-full h-full object-cover"
+        >
+          <source src="/bg.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
 
-        {/* Main Content */}
-        <div className="bg-[#0f172a]/70 m-10 p-6 md:p-10 rounded-xl shadow-xl max-w-3xl md:max-w-4xl">
+        {/* Header */}
+        <div className="absolute top-0 left-0 w-full z-20">
+          <Header />
+        </div>
+
+        {/* Overlay for Content */}
+        <div className="relative z-10 bg-[#0f172a]/70 m-10 p-6 md:p-10 rounded-xl shadow-xl max-w-3xl md:max-w-4xl">
+          {/* Main Content */}
           <h1 className="text-white text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-6 drop-shadow-md">
             <span className="animated-heading">
               Discover Your Next Adventure:
