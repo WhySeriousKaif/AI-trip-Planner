@@ -23,7 +23,7 @@ const SavedTrips = () => {
     }
 
     getSavedTrips(user);
-  }, [authLoading, user]);
+  }, [authLoading, user, navigate]);
 
   const getSavedTrips = async (user) => {
     try {
@@ -40,15 +40,29 @@ const SavedTrips = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-r from-blue-100 to-blue-400">
-      <Header /> {/* Ensure the Header is positioned at the top */}
-      <div className="p-10 sm:px-10 md:px-32 xl:px-72 m-10 text-gray-800 font-semibold rounded-lg">
-        <h1 className="text-bold text-2xl mb-10 text-center">My Trips</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-gray-800">
-          {userTrips.map((trip, index) => (
-            <UserTripCardItem key={index} trip={trip} />
-          ))}
-        </div>
+    <div className="relative min-h-screen bg-gradient-to-r from-ice-cold to-freeze-purple">
+      <Header />
+      <div className="pt-28 pb-16 px-5 sm:px-10 md:px-20 xl:px-32">
+        <h1 className="font-extrabold text-2xl sm:text-3xl mb-10 text-center text-gray-900">
+          My Trips
+        </h1>
+
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-24 text-gray-500">
+            <div className="h-10 w-10 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <p>Loading your trips...</p>
+          </div>
+        ) : userTrips.length === 0 ? (
+          <div className="max-w-md mx-auto text-center bg-white rounded-2xl shadow-md p-10">
+            <p className="text-gray-600">You haven't saved any trips yet.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {userTrips.map((trip, index) => (
+              <UserTripCardItem key={index} trip={trip} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

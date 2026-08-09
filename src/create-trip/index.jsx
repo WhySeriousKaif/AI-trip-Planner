@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FcGoogle } from "react-icons/fc";
-import { collection, setDoc, serverTimestamp, doc } from "firebase/firestore";
+import { setDoc, serverTimestamp, doc } from "firebase/firestore";
 import { db } from "./fireBaseConfig";
 import { Link, useNavigate } from "react-router-dom";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -184,105 +184,111 @@ const CreateTrip = () => {
     <div className="relative bg-gradient-to-r from-ice-cold to-freeze-purple bg-cover bg-center w-full min-h-screen flex flex-col">
       <Header />
       {isGenerating && <LoadingScreen />}
-      <div className="sm:px-10 md:px-32 lg:px-56 xl:px-10 px-5 w-full flex-grow">
-        <h2 className="font-bold text-3xl mt-20">
-          Tell us your travel preferences 🏕️🌴
-        </h2>
-        <p className="mt-3 text-white-500 text-xl">
-          Just provide some basic information, and our trip planner will generate
-          a customized itinerary based on your preferences.
-        </p>
-
-        {/* form  */}
-        <div className="mt-20 flex flex-col gap-10">
-          <div>
-            <h2 className="text-xl my-2 font-medium">
-              What is your destination of choice?
-            </h2>
-            <DestinationAutocomplete
-              value={place}
-              onChange={(v) => {
-                setPlace(v);
-                handleInputChange("location", v);
-              }}
-              placeholder="Search for a destination..."
-              disabled={isGenerating}
-            />
-          </div>
-          <div>
-            <h2 className="text-xl my-2 font-medium"> How many days are you planing your trip?</h2>
-            <Input
-              placeholder={"Ex-3"}
-              type="number"
-              onChange={(e) => handleInputChange("noOfDays", e.target.value)}
-              disabled={isGenerating}
-            />
-            <p className="text-sm text-white-500"> *You can plan a trip for up to 5 days</p>
-          </div>
-        </div>
-
-        {/* Budget Selection */}
-        <div>
-          <h2 className="text-xl my-2 font-medium">What is Your Budget?</h2>
-
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {SelectBudgetOptions.map((item,index) => (
-              <div
-                key={index}
-                onClick={() => !isGenerating && handleInputChange("budget", item.title)}
-                className={`p-5 border rounded-lg flex gap-5 items-center hover:shadow-md transition-all duration-200 cursor-pointer
-                  ${FormData?.budget === item.title ? "border-blue-500 bg-blue-50" : ""} ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                {/* icon */}
-                <div className="w-10 h-10 flex justify-center items-center text-4xl">
-                  {item.icon}
-                </div>
-                <div>
-                  <h2 className="font-bold text-lg ">{item.title}</h2>
-                  <p className="text-sm text-gray-500">{item.desc}</p>
-                  <p className="text-sm font-medium text-black">{item.cost}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Travel Type */}
-        <div className="mt-10">
-          <h2 className="text-xl my-2 font-medium">
-            What do you plan on traveling with on your next adventure ?
+      <div className="px-5 sm:px-10 w-full flex-grow flex justify-center pt-28 pb-16">
+        <div className="w-full max-w-4xl bg-white rounded-3xl shadow-xl p-6 sm:p-10">
+          <h2 className="font-extrabold text-2xl sm:text-3xl text-gray-900">
+            Tell us your travel preferences 🏕️🌴
           </h2>
-          <div className="grid grid-cols-1  sm:grid-cols-2  md:grid-cols-3  lg:grid-cols-4 gap-5">
-            {SelectTravelsList.map((item, index) => (
-              <div
-                key={index}
-                className={`p-5 border rounded-lg flex gap-5 items-center hover:shadow-md transition-all duration-200 cursor-pointer
-                  ${FormData?.people === item.people ? "border-blue-500 bg-blue-50" : ""} ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
-                onClick={() => !isGenerating && handleInputChange("people", item.people)}
-              >
-                {/* icon */}
-                <div className="w-10 h-10 text-4xl flex justify-center items-center">
-                  {item.icon}
-                </div>
-                <div>
-                  <h2 className="font-bold text-lg">{item.title}</h2>
-                  <p className="text-sm text-gray-500">{item.desc}</p>
-                  <p className="text-black">{item.people}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-        {/* Button */}
+          <p className="mt-3 text-gray-500 text-base sm:text-lg">
+            Just provide some basic information, and our trip planner will generate
+            a customized itinerary based on your preferences.
+          </p>
 
-        <div className="mt-10 flex justify-center mb-20 mr-10 ">
-          <Button 
-            onClick={generateTrip} 
-            className="px-6 py-2 mb-10  "
-            disabled={isGenerating}
-          >
-            {isGenerating ? 'Generating...' : 'Generate Trip'}
-          </Button>
+          {/* form  */}
+          <div className="mt-10 flex flex-col gap-8">
+            <div>
+              <h2 className="text-lg my-2 font-semibold text-gray-800">
+                What is your destination of choice?
+              </h2>
+              <DestinationAutocomplete
+                value={place}
+                onChange={(v) => {
+                  setPlace(v);
+                  handleInputChange("location", v);
+                }}
+                placeholder="Search for a destination..."
+                disabled={isGenerating}
+              />
+            </div>
+            <div>
+              <h2 className="text-lg my-2 font-semibold text-gray-800"> How many days are you planing your trip?</h2>
+              <Input
+                placeholder={"Ex-3"}
+                type="number"
+                onChange={(e) => handleInputChange("noOfDays", e.target.value)}
+                disabled={isGenerating}
+              />
+              <p className="text-sm text-gray-400 mt-1"> *You can plan a trip for up to 5 days</p>
+            </div>
+          </div>
+
+          {/* Budget Selection */}
+          <div className="mt-10">
+            <h2 className="text-lg font-semibold text-gray-800">What is Your Budget?</h2>
+
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {SelectBudgetOptions.map((item,index) => {
+                const selected = FormData?.budget === item.title;
+                return (
+                <div
+                  key={index}
+                  onClick={() => !isGenerating && handleInputChange("budget", item.title)}
+                  className={`p-5 border-2 rounded-2xl flex gap-4 items-center transition-all duration-200 cursor-pointer
+                    ${selected ? "border-cyan-500 bg-cyan-50 shadow-md" : "border-gray-100 hover:border-cyan-200 hover:shadow-md"} ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {/* icon */}
+                  <div className="w-11 h-11 flex justify-center items-center text-3xl bg-gray-50 rounded-xl shrink-0">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-gray-900">{item.title}</h2>
+                    <p className="text-sm text-gray-500">{item.desc}</p>
+                    <p className="text-sm font-medium text-cyan-700 mt-0.5">{item.cost}</p>
+                  </div>
+                </div>
+              )})}
+            </div>
+          </div>
+
+          {/* Travel Type */}
+          <div className="mt-10">
+            <h2 className="text-lg font-semibold text-gray-800">
+              What do you plan on traveling with on your next adventure ?
+            </h2>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {SelectTravelsList.map((item, index) => {
+                const selected = FormData?.people === item.people;
+                return (
+                <div
+                  key={index}
+                  className={`p-5 border-2 rounded-2xl flex gap-4 items-center transition-all duration-200 cursor-pointer
+                    ${selected ? "border-cyan-500 bg-cyan-50 shadow-md" : "border-gray-100 hover:border-cyan-200 hover:shadow-md"} ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
+                  onClick={() => !isGenerating && handleInputChange("people", item.people)}
+                >
+                  {/* icon */}
+                  <div className="w-11 h-11 text-3xl flex justify-center items-center bg-gray-50 rounded-xl shrink-0">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-gray-900">{item.title}</h2>
+                    <p className="text-sm text-gray-500">{item.desc}</p>
+                    <p className="text-cyan-700 text-sm font-medium mt-0.5">{item.people}</p>
+                  </div>
+                </div>
+              )})}
+            </div>
+          </div>
+          {/* Button */}
+
+          <div className="mt-12 flex justify-center">
+            <Button
+              onClick={generateTrip}
+              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold px-10 py-3 rounded-full transition-all duration-300 disabled:opacity-60"
+              disabled={isGenerating || loading}
+            >
+              {isGenerating ? 'Generating...' : loading ? 'Saving...' : 'Generate Trip'}
+            </Button>
+          </div>
         </div>
         <Dialog open={opendialog} onOpenChange={handleDialogClose}>
           <DialogContent className="sm:max-w-md">
