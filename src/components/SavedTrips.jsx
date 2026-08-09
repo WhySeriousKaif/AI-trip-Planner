@@ -5,26 +5,29 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import UserTripCardItem from "./UserTripCardItem";
 import Header from "@/components/custom/Header"; // Import the Header component
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 
 const SavedTrips = () => {
   const [userTrips, setUserTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user, authLoading } = useGoogleAuth();
 
   useEffect(() => {
-    getSavedTrips();
-  }, []);
+    if (authLoading) return;
 
-  const getSavedTrips = async () => {
-    const user = JSON.parse(localStorage.getItem("userProfile"));
-    if (!user || !user.email) {
+    if (!user) {
       toast.error("User not logged in or profile missing. Please sign in.");
-      navigate("/login");
-          return;
-     }
+      navigate("/create-trip");
+      return;
+    }
 
+    getSavedTrips(user);
+  }, [authLoading, user]);
+
+  const getSavedTrips = async (user) => {
     try {
-      const q = query(collection(db, "trips"), where("userEmail", "==", user.email));
+      const q = query(collection(db, "trips"), where("userId", "==", user.uid));
       const querySnapshot = await getDocs(q);
       const trips = querySnapshot.docs.map((doc) => doc.data());
       setUserTrips(trips);

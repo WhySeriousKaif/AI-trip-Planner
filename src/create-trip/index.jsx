@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import React, { useState, useEffect } from "react";
-import GooglePlacesAutocomplete from "react-google-places-autocomplete";
+import DestinationAutocomplete from "@/components/custom/DestinationAutocomplete";
 import { AI_Prompt, SelectTravelsList } from "@/constants/options";
 import { SelectBudgetOptions } from "@/constants/option2";
 import { Button } from "@/components/ui/button";
@@ -14,13 +14,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FcGoogle } from "react-icons/fc";
-import { useGoogleLogin } from "@react-oauth/google";
-import axios from "axios";
 import { collection, setDoc, serverTimestamp, doc } from "firebase/firestore";
 import { db } from "./fireBaseConfig";
 import { Link, useNavigate } from "react-router-dom";
 import LoadingScreen from "@/components/LoadingScreen";
 import Header from "@/components/custom/Header";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 
 const CreateTrip = () => {
   const [place, setPlace] = useState({});
@@ -42,45 +41,11 @@ const CreateTrip = () => {
     });
   };
 
-  const getUserProfile = async (tokenInfo) => {
-    try {
-      const response = await axios.get(
-        `https://www.googleapis.com/oauth2/v1/userinfo`,
-        {
-          headers: {
-            Authorization: `Bearer ${tokenInfo?.access_token}`,
-            Accept: 'application/json'
-          }
-        }
-      );
-      console.log("User Profile:", response.data);
-      localStorage.setItem("userProfile", JSON.stringify(response.data));
+  const { user, loginWithGoogle } = useGoogleAuth({
+    onLoginSuccess: () => {
       setopendialog(false);
-      generateTrip();  
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      toast.error("Failed to fetch user profile");
-    }
-  };
-
-  const loginWithGoogle = useGoogleLogin({
-    onSuccess: async (codeResponse) => {
-      try {
-        console.log("Login Success: currentUser:", codeResponse);
-        localStorage.setItem("user", JSON.stringify(codeResponse));
-        await getUserProfile(codeResponse);
-        setopendialog(false);
-        toast.success("Successfully logged in!");
-      } catch (error) {
-        console.error("Login Failed:", error);
-        toast.error("Login Failed");
-      }
+      generateTrip();
     },
-    onError: (error) => {
-      console.log("Login Failed:", error);
-      toast.error("Login Failed");
-    }
   });
 
   const validateForm = () => {
@@ -104,7 +69,6 @@ const CreateTrip = () => {
   };
 
   const generateTrip = async () => {
-    const user = localStorage.getItem("user");
     if (!user) {
       setopendialog(true);
       return;
@@ -166,19 +130,18 @@ const CreateTrip = () => {
     try {
       setLoading(true);
 
-      const localUser = JSON.parse(localStorage.getItem("userProfile"));
-      if (!localUser || !localUser.email) {
+      if (!user?.email) {
         throw new Error("User profile or email not found");
       }
 
       const docId = Date.now().toString();
-      
+
       const tripDocument = {
         userSelection: FormData,
         tripPlan: tripData,
-        userEmail: localUser.email,
-        userId: localUser.id,
-        userName: localUser.name || "",
+        userEmail: user.email,
+        userId: user.uid,
+        userName: user.displayName || "",
         createdAt: serverTimestamp(),
         lastModified: serverTimestamp(),
         status: 'active',
@@ -203,13 +166,6 @@ const CreateTrip = () => {
   useEffect(() => {
     console.log("Form Data", FormData);
   }, [FormData]);
-
-  useEffect(() => {
-    console.log(
-      "API Key available:",
-      !!import.meta.env.VITE_GOOGLE_MAPS_API_KEY
-    );
-  }, []);
 
   const toggleScroll = (disable) => {
     document.body.style.overflow = disable ? 'hidden' : 'auto';
@@ -243,17 +199,14 @@ const CreateTrip = () => {
             <h2 className="text-xl my-2 font-medium">
               What is your destination of choice?
             </h2>
-            <GooglePlacesAutocomplete
-              apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
-              selectProps={{
-                place,
-                onChange: (v) => {
-                  setPlace(v);
-                  handleInputChange("location", v);
-                },
-                placeholder: "Search for a destination...",
-                isDisabled: isGenerating,
+            <DestinationAutocomplete
+              value={place}
+              onChange={(v) => {
+                setPlace(v);
+                handleInputChange("location", v);
               }}
+              placeholder="Search for a destination..."
+              disabled={isGenerating}
             />
           </div>
           <div>

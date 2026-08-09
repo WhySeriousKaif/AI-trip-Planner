@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 // Configure the Gemini model
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-pro-preview-03-25",
+  model: "gemini-2.5-flash",
 });
 
 // Define generation config

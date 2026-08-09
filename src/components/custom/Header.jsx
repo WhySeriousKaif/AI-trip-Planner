@@ -1,16 +1,13 @@
 import React, { useState } from "react";
-import { googleLogout } from "@react-oauth/google";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 
 function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { user, logout } = useGoogleAuth();
 
   const handleLogout = () => {
-    googleLogout();
-    localStorage.clear();
-    window.location.reload();
+    logout();
   };
 
   const toggleMobileMenu = () => {

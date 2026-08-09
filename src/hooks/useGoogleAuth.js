@@ -1,45 +1,36 @@
-import { useGoogleLogin } from "@react-oauth/google";
-import axios from "axios";
+import { useState, useEffect } from "react";
+import { signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { auth, googleProvider } from "@/create-trip/fireBaseConfig";
 import { toast } from "sonner";
 
-export const useGoogleAuth = () => {
-  const getUserProfile = async (tokenInfo) => {
+export const useGoogleAuth = ({ onLoginSuccess, onLoginError } = {}) => {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+      setAuthLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
+  const loginWithGoogle = async () => {
     try {
-      const response = await axios.get(
-        `https://www.googleapis.com/oauth2/v1/userinfo`,
-        {
-          headers: {
-            Authorization: `Bearer ${tokenInfo?.access_token}`,
-            Accept: 'application/json'
-          }
-        }
-      );
-      console.log("User Profile:", response.data);
-      localStorage.setItem("userProfile", JSON.stringify(response.data));
+      const result = await signInWithPopup(auth, googleProvider);
       toast.success("Successfully logged in!");
-      return response.data;
+      onLoginSuccess?.(result.user);
+      return result.user;
     } catch (error) {
-      console.error("Error fetching user profile:", error);
-      toast.error("Failed to fetch user profile");
+      console.error("Login Failed:", error);
+      toast.error("Login Failed");
+      onLoginError?.(error);
     }
   };
 
-  const loginWithGoogle = useGoogleLogin({
-    onSuccess: async (codeResponse) => {
-      try {
-        console.log("Login Success: currentUser:", codeResponse);
-        localStorage.setItem("user", JSON.stringify(codeResponse));
-        await getUserProfile(codeResponse);
-      } catch (error) {
-        console.error("Login Failed:", error);
-        toast.error("Login Failed");
-      }
-    },
-    onError: (error) => {
-      console.log("Login Failed:", error);
-      toast.error("Login Failed");
-    }
-  });
+  const logout = async () => {
+    await signOut(auth);
+  };
 
-  return { loginWithGoogle };
+  return { user, authLoading, loginWithGoogle, logout };
 };

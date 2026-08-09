@@ -1,3 +1,5 @@
+const SERPER_API_KEY = import.meta.env.VITE_SERPER_API_KEY;
+
 export const fetchImagesForPlaces = async (places, location) => {
   const newImages = {};
   const errors = [];
@@ -7,7 +9,7 @@ export const fetchImagesForPlaces = async (places, location) => {
       const response = await fetch("https://google.serper.dev/images", {
         method: "POST",
         headers: {
-          "X-API-KEY": "d85a44f8bce30e1c1852c7e8fca338e5c718a87f",
+          "X-API-KEY": SERPER_API_KEY,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -49,7 +51,7 @@ export const fetchImagesForHotels = async (hotels, location) => {
       const response = await fetch("https://google.serper.dev/images", {
         method: "POST",
         headers: {
-          "X-API-KEY": "YOUR_SERPAPI_KEY", // Replace with your actual API key
+          "X-API-KEY": SERPER_API_KEY,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
