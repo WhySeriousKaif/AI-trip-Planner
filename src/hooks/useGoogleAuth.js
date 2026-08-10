@@ -30,6 +30,9 @@ export const useGoogleAuth = ({ onLoginSuccess, onLoginError } = {}) => {
 
   const logout = async () => {
     await signOut(auth);
+    // Force a full reload so no component can act on a stale pre-logout
+    // closure/state instead of waiting for React to propagate the change.
+    window.location.reload();
   };
 
   return { user, authLoading, loginWithGoogle, logout };

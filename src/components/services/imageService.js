@@ -1,50 +1,50 @@
-const SERPER_API_KEY = import.meta.env.VITE_SERPER_API_KEY;
+// Openverse is a free, keyless image search (Flickr, Wikimedia Commons, and
+// other CC-licensed sources) with a daily-resetting rate limit instead of a
+// one-time credit pool, so it can't "run out" the way a paid API key can.
+// Note: appending a type word like "hotel" or "tourist place" to the query
+// noticeably hurts match quality on Openverse — omit it, location is enough.
+const REQUEST_SPACING_MS = 200;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const fetchImages = async (queries, type, location) => {
+const fetchImageForQuery = async (query, location, retryOn429 = true) => {
+  try {
+    const searchQuery = `${query} ${location || ""}`.trim();
+    const response = await fetch(
+      `https://api.openverse.org/v1/images/?q=${encodeURIComponent(searchQuery)}&page_size=1`
+    );
+
+    if (response.status === 429 && retryOn429) {
+      await sleep(1500);
+      return fetchImageForQuery(query, location, false);
+    }
+
+    if (!response.ok) {
+      throw new Error(`Openverse API returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    const firstResult = data?.results?.[0];
+    return firstResult?.url || firstResult?.thumbnail || "";
+  } catch (err) {
+    console.error(`Error fetching image for "${query}":`, err);
+    return "";
+  }
+};
+
+const fetchImages = async (queries, location) => {
   const newImages = {};
-  const errors = [];
 
   for (const query of queries) {
     if (!query || typeof query !== "string") continue;
-
-    try {
-      const response = await fetch("https://google.serper.dev/images", {
-        method: "POST",
-        headers: {
-          "X-API-KEY": SERPER_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          q: `${query} ${type} ${location || "India"}`,
-          gl: "in",
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Serper API returned ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      // imageUrl is the actual hotlinkable image; googleUrl is a Google
-      // image-viewer HTML page and is never valid as an <img src>.
-      const firstImage = result.images?.[0];
-      newImages[query] = firstImage?.imageUrl || firstImage?.thumbnailUrl || "";
-    } catch (err) {
-      errors.push(`Error fetching image for ${query}: ${err.message}`);
-      newImages[query] = "";
-    }
-  }
-
-  if (errors.length > 0) {
-    console.error(errors.join("\n"));
+    newImages[query] = await fetchImageForQuery(query, location);
+    await sleep(REQUEST_SPACING_MS);
   }
 
   return newImages;
 };
 
 export const fetchImagesForHotels = (hotelNames, location) =>
-  fetchImages(hotelNames, "hotel", location);
+  fetchImages(hotelNames, location);
 
 export const fetchImagesForPlaces = (places, location) =>
-  fetchImages(places, "tourist place", location);
+  fetchImages(places, location);

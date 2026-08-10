@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
-import { fetchImagesForPlaces } from "@/components/services/serpApiService"; // Ensure this import is correct
+import ImageWithFallback from "@/components/custom/ImageWithFallback";
 
 const FALLBACK_IMAGE =
   "https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=800";
 
-const Itinerary = ({ trip, initialImageUrls }) => {
-  const [placeImages, setPlaceImages] = useState(initialImageUrls || {});
-  const [loading, setLoading] = useState(false);
+const Itinerary = ({ trip, initialImageUrls = {} }) => {
+  const [placeImages, setPlaceImages] = useState(initialImageUrls);
 
   const dailyItinerary = useMemo(
     () =>
@@ -22,34 +21,12 @@ const Itinerary = ({ trip, initialImageUrls }) => {
   const tripLocation =
     trip?.userSelection?.location?.label || trip?.tripPlan?.[0]?.location || "Unknown Location";
 
+  // ViewTrip fetches these images once for both Hotel and Itinerary — just
+  // sync from that instead of re-fetching independently here, which was
+  // silently doubling the request volume against Openverse's rate limit.
   useEffect(() => {
-    const fetchImages = async () => {
-      if (dailyItinerary.length > 0) {
-        setLoading(true);
-        try {
-          const allPlaces = dailyItinerary.flatMap((itineraryItem) =>
-            (itineraryItem.activities || []).map(
-              (place) =>
-                place["Place Name"] ||
-                place.place_name ||
-                place.placeName ||
-                "Unknown Place"
-            )
-          );
-          const images = await fetchImagesForPlaces(allPlaces, tripLocation);
-          setPlaceImages(images);
-        } catch (error) {
-          console.error("Error fetching place images:", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    if (!initialImageUrls || Object.keys(initialImageUrls).length === 0) {
-      fetchImages();
-    }
-  }, [trip, dailyItinerary, initialImageUrls]);
+    setPlaceImages(initialImageUrls);
+  }, [initialImageUrls]);
 
   if (!Array.isArray(dailyItinerary) || dailyItinerary.length === 0) {
     return (
@@ -72,16 +49,12 @@ const Itinerary = ({ trip, initialImageUrls }) => {
     return (
       <div key={index} className="bg-white rounded-xl shadow-lg p-6 flex flex-col sm:flex-row hover:shadow-xl transition-shadow duration-300">
         {/* Image */}
-        <div className="w-full sm:w-56 h-40 sm:h-auto shrink-0 overflow-hidden rounded-xl">
-          <img
-            src={placeImages[placeName] || FALLBACK_IMAGE}
-            alt={placeName}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.src = FALLBACK_IMAGE;
-            }}
-          />
-        </div>
+        <ImageWithFallback
+          src={placeImages[placeName]}
+          fallbackSrc={FALLBACK_IMAGE}
+          alt={placeName}
+          className="w-full sm:w-56 h-40 sm:h-auto shrink-0 overflow-hidden rounded-xl"
+        />
 
         {/* Information Section */}
         <div className="flex-1 pl-0 sm:pl-6 mt-4 sm:mt-0">

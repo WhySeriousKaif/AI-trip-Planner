@@ -2,11 +2,15 @@ import React, { useState, useEffect } from "react";
 import { IoSend } from "react-icons/io5";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
+import ImageWithFallback from "@/components/custom/ImageWithFallback";
+import { fetchImagesForPlaces } from "@/components/services/imageService";
+
+const HERO_FALLBACK_IMAGE =
+  "https://cdn.vectorstock.com/i/1000v/72/62/airplane-flying-above-the-earth-around-world-vector-40827262.jpg";
 
 const Infosection = ({ trip }) => {
   const [place, setPlace] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (trip) {
@@ -19,38 +23,14 @@ const Infosection = ({ trip }) => {
   }, [trip]);
 
   const handleSearch = async (searchPlace) => {
-    if (!searchPlace) {
-      setError("Place name is required.");
-      return;
-    }
+    if (!searchPlace) return;
 
     try {
-      const response = await fetch("https://google.serper.dev/images", {
-        method: "POST",
-        headers: {
-          "X-API-KEY": "d85a44f8bce30e1c1852c7e8fca338e5c718a87f",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          q: `${searchPlace} tourist place India`,
-          gl: "in",
-        }),
-      });
-
-      const result = await response.json();
-      console.log(`Serper API Response for ${searchPlace}:`, result);
-
-      // Check for images in the result
-      if (result.images && result.images.length > 0) {
-        setImageUrl(result.images[0].imageUrl);
-        setError(null);
-      } else {
-        setImageUrl("");
-        setError("No images found.");
-      }
+      const images = await fetchImagesForPlaces([searchPlace]);
+      setImageUrl(images[searchPlace] || "");
     } catch (err) {
-      setError("Error fetching data.");
-      console.error("Error:", err);
+      console.error("Error fetching destination image:", err);
+      setImageUrl("");
     }
   };
 
@@ -88,22 +68,12 @@ const Infosection = ({ trip }) => {
   return (
     <div className="flex flex-col gap-6  rounded-lg ">
       <div className="relative mt-2">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={place}
-            className="h-[340px] w-full object-cover rounded-lg shadow-md"
-            onError={(e) => {
-              e.target.src = "https://cdn.vectorstock.com/i/1000v/72/62/airplane-flying-above-the-earth-around-world-vector-40827262.jpg";
-            }}
-          />
-        ) : (
-          <img
-            src="https://cdn.vectorstock.com/i/1000v/72/62/airplane-flying-above-the-earth-around-world-vector-40827262.jpg"
-            alt="Travel"
-            className="h-[340px] w-full object-cover rounded-lg shadow-md"
-          />
-        )}
+        <ImageWithFallback
+          src={imageUrl}
+          fallbackSrc={HERO_FALLBACK_IMAGE}
+          alt={place || "Travel"}
+          className="h-[340px] w-full object-cover rounded-lg shadow-md"
+        />
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -140,12 +110,6 @@ const Infosection = ({ trip }) => {
           </div>
         </div>
       </div>
-
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
     </div>
   );
 };

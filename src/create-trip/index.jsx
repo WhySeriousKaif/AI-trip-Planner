@@ -282,7 +282,7 @@ const CreateTrip = () => {
 
           <div className="mt-12 flex justify-center">
             <Button
-              onClick={generateTrip}
+              onClick={() => generateTrip()}
               className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold px-10 py-3 rounded-full transition-all duration-300 disabled:opacity-60"
               disabled={isGenerating || loading}
             >
