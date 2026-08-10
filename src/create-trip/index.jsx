@@ -14,12 +14,49 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FcGoogle } from "react-icons/fc";
+import { fetchImagesForHotels, fetchImagesForPlaces } from "@/components/services/imageService";
 import { setDoc, serverTimestamp, doc } from "firebase/firestore";
 import { db } from "./fireBaseConfig";
 import { Link, useNavigate } from "react-router-dom";
 import LoadingScreen from "@/components/LoadingScreen";
 import Header from "@/components/custom/Header";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
+
+// Fetch images once, at generation time, and bake them into the trip data
+// itself — so viewing a saved trip later never needs to fetch images again
+// (no repeated API calls, no loading spinners on the view page).
+const enrichTripPlanWithImages = async (tripPlan, location) => {
+  const hotelNames = tripPlan.hotels?.map((hotel) => hotel.name) || [];
+  const placeNames =
+    tripPlan.itinerary?.flatMap((day) =>
+      (day.activities || []).map((activity) => activity.placeName)
+    ) || [];
+
+  // Sequential, not Promise.all — running these concurrently multiplies how
+  // many requests hit Openverse's rate limit at once. One queue at a time
+  // keeps actual request volume predictable, even though it's slower.
+  const hotelImages =
+    hotelNames.length > 0 ? await fetchImagesForHotels(hotelNames, location) : {};
+  const placeImages =
+    placeNames.length > 0 ? await fetchImagesForPlaces(placeNames, location) : {};
+  const destinationImages = location ? await fetchImagesForPlaces([location]) : {};
+
+  return {
+    ...tripPlan,
+    destinationImageUrl: (location && destinationImages[location]) || "",
+    hotels: tripPlan.hotels?.map((hotel) => ({
+      ...hotel,
+      imageUrl: hotelImages[hotel.name] || "",
+    })),
+    itinerary: tripPlan.itinerary?.map((day) => ({
+      ...day,
+      activities: (day.activities || []).map((activity) => ({
+        ...activity,
+        imageUrl: placeImages[activity.placeName] || "",
+      })),
+    })),
+  };
+};
 
 const CreateTrip = () => {
   const [place, setPlace] = useState({});
@@ -112,8 +149,12 @@ const CreateTrip = () => {
       }
 
       if (tripPlanText) {
-        setTripPlan(tripPlanText);
-        await SaveAiTrip(tripPlanText, authUser);
+        const enrichedTripPlan = await enrichTripPlanWithImages(
+          tripPlanText,
+          FormData.location?.label
+        );
+        setTripPlan(enrichedTripPlan);
+        await SaveAiTrip(enrichedTripPlan, authUser);
       } else {
         throw new Error("Failed to extract JSON from AI response");
       }

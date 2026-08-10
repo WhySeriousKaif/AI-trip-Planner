@@ -1,38 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { IoSend } from "react-icons/io5";
 import { Button } from "./ui/button";
 import { toast } from "sonner";
 import ImageWithFallback from "@/components/custom/ImageWithFallback";
-import { fetchImagesForPlaces } from "@/components/services/imageService";
 
 const HERO_FALLBACK_IMAGE =
   "https://cdn.vectorstock.com/i/1000v/72/62/airplane-flying-above-the-earth-around-world-vector-40827262.jpg";
 
 const Infosection = ({ trip }) => {
-  const [place, setPlace] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-
-  useEffect(() => {
-    if (trip) {
-      const locationLabel = trip?.userSelection?.location?.label;
-      if (locationLabel) {
-        setPlace(locationLabel);
-        handleSearch(locationLabel);
-      }
-    }
-  }, [trip]);
-
-  const handleSearch = async (searchPlace) => {
-    if (!searchPlace) return;
-
-    try {
-      const images = await fetchImagesForPlaces([searchPlace]);
-      setImageUrl(images[searchPlace] || "");
-    } catch (err) {
-      console.error("Error fetching destination image:", err);
-      setImageUrl("");
-    }
-  };
+  const place = trip?.userSelection?.location?.label || "";
 
   const handleShare = () => {
     if (navigator.share) {
@@ -69,7 +45,7 @@ const Infosection = ({ trip }) => {
     <div className="flex flex-col gap-6  rounded-lg ">
       <div className="relative mt-2">
         <ImageWithFallback
-          src={imageUrl}
+          src={trip?.tripPlan?.destinationImageUrl}
           fallbackSrc={HERO_FALLBACK_IMAGE}
           alt={place || "Travel"}
           className="h-[340px] w-full object-cover rounded-lg shadow-md"

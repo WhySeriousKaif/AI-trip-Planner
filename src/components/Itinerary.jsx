@@ -1,13 +1,11 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useMemo } from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import ImageWithFallback from "@/components/custom/ImageWithFallback";
 
 const FALLBACK_IMAGE =
   "https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=800";
 
-const Itinerary = ({ trip, initialImageUrls = {} }) => {
-  const [placeImages, setPlaceImages] = useState(initialImageUrls);
-
+const Itinerary = ({ trip }) => {
   const dailyItinerary = useMemo(
     () =>
       trip?.tripPlan?.itinerary ||
@@ -20,13 +18,6 @@ const Itinerary = ({ trip, initialImageUrls = {} }) => {
 
   const tripLocation =
     trip?.userSelection?.location?.label || trip?.tripPlan?.[0]?.location || "Unknown Location";
-
-  // ViewTrip fetches these images once for both Hotel and Itinerary — just
-  // sync from that instead of re-fetching independently here, which was
-  // silently doubling the request volume against Openverse's rate limit.
-  useEffect(() => {
-    setPlaceImages(initialImageUrls);
-  }, [initialImageUrls]);
 
   if (!Array.isArray(dailyItinerary) || dailyItinerary.length === 0) {
     return (
@@ -50,7 +41,7 @@ const Itinerary = ({ trip, initialImageUrls = {} }) => {
       <div key={index} className="bg-white rounded-xl shadow-lg p-6 flex flex-col sm:flex-row hover:shadow-xl transition-shadow duration-300">
         {/* Image */}
         <ImageWithFallback
-          src={placeImages[placeName]}
+          src={place.imageUrl}
           fallbackSrc={FALLBACK_IMAGE}
           alt={placeName}
           className="w-full sm:w-56 h-40 sm:h-auto shrink-0 overflow-hidden rounded-xl"
