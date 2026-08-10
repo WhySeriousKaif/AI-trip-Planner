@@ -130,8 +130,8 @@ const CreateTrip = () => {
     try {
       setLoading(true);
 
-      if (!authUser?.email) {
-        throw new Error("User profile or email not found");
+      if (!authUser?.uid) {
+        throw new Error("User profile not found");
       }
 
       const docId = Date.now().toString();
@@ -139,7 +139,7 @@ const CreateTrip = () => {
       const tripDocument = {
         userSelection: FormData,
         tripPlan: tripData,
-        userEmail: authUser.email,
+        userEmail: authUser.email || "",
         userId: authUser.uid,
         userName: authUser.displayName || "",
         createdAt: serverTimestamp(),
