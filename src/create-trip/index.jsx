@@ -42,9 +42,9 @@ const CreateTrip = () => {
   };
 
   const { user, loginWithGoogle } = useGoogleAuth({
-    onLoginSuccess: () => {
+    onLoginSuccess: (loggedInUser) => {
       setopendialog(false);
-      generateTrip();
+      generateTrip(loggedInUser);
     },
   });
 
@@ -68,8 +68,8 @@ const CreateTrip = () => {
     return true;
   };
 
-  const generateTrip = async () => {
-    if (!user) {
+  const generateTrip = async (authUser = user) => {
+    if (!authUser) {
       setopendialog(true);
       return;
     }
@@ -113,7 +113,7 @@ const CreateTrip = () => {
 
       if (tripPlanText) {
         setTripPlan(tripPlanText);
-        await SaveAiTrip(tripPlanText);
+        await SaveAiTrip(tripPlanText, authUser);
       } else {
         throw new Error("Failed to extract JSON from AI response");
       }
@@ -126,11 +126,11 @@ const CreateTrip = () => {
     }
   };
 
-  const SaveAiTrip = async (tripData) => {
+  const SaveAiTrip = async (tripData, authUser = user) => {
     try {
       setLoading(true);
 
-      if (!user?.email) {
+      if (!authUser?.email) {
         throw new Error("User profile or email not found");
       }
 
@@ -139,9 +139,9 @@ const CreateTrip = () => {
       const tripDocument = {
         userSelection: FormData,
         tripPlan: tripData,
-        userEmail: user.email,
-        userId: user.uid,
-        userName: user.displayName || "",
+        userEmail: authUser.email,
+        userId: authUser.uid,
+        userName: authUser.displayName || "",
         createdAt: serverTimestamp(),
         lastModified: serverTimestamp(),
         status: 'active',

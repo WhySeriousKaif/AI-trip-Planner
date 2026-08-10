@@ -45,15 +45,15 @@ const ViewTrip = () => {
       const location = data?.userSelection?.location?.label;
       
       // Fetch hotel images
-      const hotels = data.tripPlan?.hotelRecommendations || [];
-      if (hotels.length > 0) {
-        const hotelImgs = await fetchImagesForHotels(hotels, location);
+      const hotelNames = data.tripPlan?.hotels?.map(hotel => hotel.name) || [];
+      if (hotelNames.length > 0) {
+        const hotelImgs = await fetchImagesForHotels(hotelNames, location);
         setHotelImages(hotelImgs);
       }
 
       // Fetch itinerary images
-      const places = data.tripPlan?.dailyItinerary?.flatMap(day => 
-        day.places.map(place => place.placeName)
+      const places = data.tripPlan?.itinerary?.flatMap(day =>
+        (day.activities || []).map(activity => activity.placeName)
       ) || [];
       if (places.length > 0) {
         const placeImgs = await fetchImagesForPlaces(places, location);

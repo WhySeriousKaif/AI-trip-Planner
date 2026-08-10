@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 
-const Hotel = ({ trip }) => {
+const FALLBACK_IMAGE =
+  "https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=800";
+
+const Hotel = ({ trip, imageUrls = {} }) => {
   const [loading, setLoading] = useState(true);
 
   // Get hotels data
@@ -57,6 +60,18 @@ const Hotel = ({ trip }) => {
             key={index}
             className="bg-white rounded-2xl shadow-lg p-6 border border-gray-200 flex flex-col sm:flex-row hover:shadow-xl transition-shadow duration-300"
           >
+            {/* Image */}
+            <div className="w-full sm:w-56 h-40 sm:h-auto shrink-0 overflow-hidden rounded-xl">
+              <img
+                src={imageUrls[hotel.name] || FALLBACK_IMAGE}
+                alt={hotel.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src = FALLBACK_IMAGE;
+                }}
+              />
+            </div>
+
             {/* Information Section */}
             <div className="flex-1 pl-0 sm:pl-6 mt-4 sm:mt-0">
               {/* Header */}

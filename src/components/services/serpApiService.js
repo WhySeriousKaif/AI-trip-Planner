@@ -22,7 +22,7 @@ export const fetchImagesForPlaces = async (places, location) => {
       console.log(`Serper API Response for ${place}:`, result);
 
       if (result.images && result.images.length > 0) {
-        newImages[place] = result.images[0].googleUrl;
+        newImages[place] = result.images[0].imageUrl || result.images[0].thumbnailUrl;
         console.log("newImages", newImages);
       } else {
         newImages[place] = "";
@@ -64,7 +64,7 @@ export const fetchImagesForHotels = async (hotels, location) => {
       console.log(`Serper API Response for ${hotel}:`, result);
 
       if (result.images && result.images.length > 0) {
-        hotelImages[hotel] = result.images[0].googleUrl;
+        hotelImages[hotel] = result.images[0].imageUrl || result.images[0].thumbnailUrl;
         console.log("hotelImages", hotelImages);
       } else {
         hotelImages[hotel] = "";

@@ -1,17 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { fetchImagesForPlaces } from "@/components/services/serpApiService"; // Ensure this import is correct
+
+const FALLBACK_IMAGE =
+  "https://images.pexels.com/photos/1483053/pexels-photo-1483053.jpeg?auto=compress&cs=tinysrgb&w=800";
 
 const Itinerary = ({ trip, initialImageUrls }) => {
   const [placeImages, setPlaceImages] = useState(initialImageUrls || {});
   const [loading, setLoading] = useState(false);
 
-  const dailyItinerary =
-    trip?.tripPlan?.itinerary?.[0]?.activities ||
-    trip?.tripPlan?.[0]?.travel_plan?.itinerary ||
-    trip?.tripPlan?.itinerary ||
-    [];
-    console.log("dailyItinerary",dailyItinerary);
+  const dailyItinerary = useMemo(
+    () =>
+      trip?.tripPlan?.itinerary ||
+      trip?.tripPlan?.itinerary?.[0]?.activities ||
+      trip?.tripPlan?.[0]?.travel_plan?.itinerary ||
+      [],
+    [trip]
+  );
+  console.log("dailyItinerary", dailyItinerary);
 
   const tripLocation =
     trip?.userSelection?.location?.label || trip?.tripPlan?.[0]?.location || "Unknown Location";
@@ -65,8 +71,17 @@ const Itinerary = ({ trip, initialImageUrls }) => {
 
     return (
       <div key={index} className="bg-white rounded-xl shadow-lg p-6 flex flex-col sm:flex-row hover:shadow-xl transition-shadow duration-300">
-        {/* Placeholder for Image Section */}
-
+        {/* Image */}
+        <div className="w-full sm:w-56 h-40 sm:h-auto shrink-0 overflow-hidden rounded-xl">
+          <img
+            src={placeImages[placeName] || FALLBACK_IMAGE}
+            alt={placeName}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.src = FALLBACK_IMAGE;
+            }}
+          />
+        </div>
 
         {/* Information Section */}
         <div className="flex-1 pl-0 sm:pl-6 mt-4 sm:mt-0">

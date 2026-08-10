@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 // Configure the Gemini model
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: "gemini-flash-latest",
 });
 
 // Define generation config
@@ -30,52 +30,19 @@ export const chatSession = model.startChat({
           text: `
 Generate a detailed travel plan for Las Vegas for 4 days for a couple on a budget.
 
-Respond strictly in this JSON format:
-
+Respond with ONLY a single JSON object (no markdown, no code fences) with this exact shape:
 {
   "hotels": [
-    {
-      "name": "",
-      "address": "",
-      "price": "",
-      "rating": "",
-      "imageUrl": "",
-      "geo": {
-        "lat": "",
-        "lng": ""
-      },
-      "description": ""
-    }
+    { "name": string, "address": string, "price": string, "rating": number, "description": string }
   ],
   "itinerary": [
-    {
-      "day": 1,
-      "activities": [
-        {
-          "placeName": "",
-          "details": "",
-          "imageUrl": "",
-          "geo": {
-            "lat": "",
-            "lng": ""
-          },
-          "ticketPricing": "",
-          "travelTime": "",
-          "bestTimeToVisit": ""
-        }
-      ]
-    }
+    { "day": number, "activities": [
+      { "placeName": string, "details": string, "ticketPricing": string, "travelTime": string, "bestTimeToVisit": string }
+    ] }
   ]
 }
 
-Ensure:
-- JSON is valid and properly formatted.
-- All string values are double-quoted.
-- Consistent structure across all days and places.
-- Include 3–4 places per day.
-- Use realistic data.
-
-Only respond with valid JSON. No explanations, markdown, or extra text.
+Include exactly 5 distinct, real hotels and exactly 4 days with 4-5 real activities each. Use realistic, specific data. Keep price/ticketPricing/travelTime/bestTimeToVisit short (max 4-5 words).
           `,
         },
       ],
